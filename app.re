@@ -1,8 +1,3 @@
-module R = {
-  let s = React.string;
-  let a = React.array;
-};
-
 module Colors = {
   let primary = `hex("333333");
   let selected = `hex("FFDBB3");
@@ -68,7 +63,6 @@ let cn = classNames => {
 
 [@react.component]
 let make = () => {
-  open R;
   let (countries, setCountries) = React.useState(_ => [||]);
   let (filter, setFilter) = React.useState(_ => "");
   let (openList, setOpenList) = React.useState(_ => false);
@@ -85,7 +79,7 @@ let make = () => {
 
   let filteredCountries =
     countries
-    |> Js.Array.filter(~f=(country: CountriesApi.countryData) => {
+    |> Js.Array.filter(~f=(country: CountriesApi.t) => {
          Js.String.indexOf(
            ~search=Js.String.toLowerCase(filter),
            Js.String.toLowerCase(country.label),
@@ -93,9 +87,9 @@ let make = () => {
          == 0
        });
   <>
-    <button onClick=fetchCountries type_="button"> {s("Click me")} </button>
+    <button onClick=fetchCountries type_="button"> {React.string("Click me")} </button>
     <button type_="button" onClick={_ => setOpenList(v => !v)}>
-      {s("Toggle")}
+      {React.string("Toggle")}
     </button>
     <div className={cn([|comboboxContainer, openList ? displayFlex : ""|])}>
       <input
@@ -105,14 +99,14 @@ let make = () => {
       />
       <ul className={cn([|menu, paddingBlockSm|])}>
         {filteredCountries
-         |> Js.Array.map(~f=(country: CountriesApi.countryData) => {
+         |> Js.Array.map(~f=(country: CountriesApi.t) => {
               <li
                 key={country.value}
                 className={cn([|textMd, menuItem, colorPrimary|])}>
-                {s(country.label)}
+                {React.string(country.label)}
               </li>
             })
-         |> a}
+         |> React.array}
       </ul>
     </div>
   </>;

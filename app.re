@@ -57,10 +57,6 @@ let menuItem = [%cx
 |}
 ];
 
-let cn = classNames => {
-  CssJs.merge(classNames);
-};
-
 [@react.component]
 let make = () => {
   let (countries, setCountries) = React.useState(_ => [||]);
@@ -80,10 +76,10 @@ let make = () => {
   });
 
   <main className="px-20">
+    <div style={ReactDOM.Style.make(~height="1000px", ())} />
     <Combobox
       options=countries
       selectLabel={(country: CountriesApi.t) => country.label}
-      selectUniqueString={(country: CountriesApi.t) => country.value}
       onSelect={country => Js.log(country)}
       itemEqual={(a: CountriesApi.t, b: CountriesApi.t) => a.value == b.value}
       renderItem={(country: CountriesApi.t) => {
@@ -95,5 +91,6 @@ let make = () => {
       }}
       renderButton={_ => React.string("Click me")}
     />
+    <div style={ReactDOM.Style.make(~height="1000px", ())} />
   </main>;
 };

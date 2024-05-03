@@ -61,14 +61,17 @@ let make =
       ~itemEqual: ('item, 'item) => bool,
       ~renderItem: 'item => React.element,
       ~renderButton: option('item) => React.element,
+      ~initialMaxHeight: int=400,
+      ~initialPadding: int=25,
+      ~smallViewportHeightPadding: int=5,
     ) => {
   let (open_, setOpen) = React.useState(_ => false);
   let (pointer, setPointer) = React.useState(_ => false);
   let (activeIndex, setActiveIndex) = React.useState(_ => None);
   let (selected, setSelected) = React.useState(_ => initialSelected);
 
-  let (maxHeight, setMaxHeight) = React.useState(_ => 400);
-  let (padding, setPadding) = React.useState(_ => 25);
+  let (maxHeight, setMaxHeight) = React.useState(_ => initialMaxHeight);
+  let (padding, setPadding) = React.useState(_ => initialPadding);
 
   let (inputValue, setInputValue) = React.useState(_ => "");
 
@@ -84,8 +87,13 @@ let make =
     let onResize = _ => {
       let height =
         Webapi.Dom.window |> Window.visualViewport |> VisualViewport.height;
-      let newPadding = height |> Option.map(height => height < 400 ? 5 : 25);
-      setPadding(_ => Option.value(newPadding, ~default=25));
+      let newPadding =
+        height
+        |> Option.map(height =>
+             height < initialMaxHeight
+               ? smallViewportHeightPadding : initialPadding
+           );
+      setPadding(_ => Option.value(newPadding, ~default=initialPadding));
     };
 
     Webapi.Dom.window
@@ -133,12 +141,18 @@ let make =
                       let maxHeight =
                         Js.String.startsWith(~prefix="bottom", placement)
                           ? Js.Math.max_int(
-                              padding == 25 ? 190 : 115,
-                              Js.Math.min_int(availableHeight, 410),
+                              padding == initialPadding ? 150 : 75,
+                              Js.Math.min_int(
+                                availableHeight,
+                                initialMaxHeight,
+                              ),
                             )
                           : Js.Math.max_int(
                               90,
-                              Js.Math.min_int(availableHeight, 410),
+                              Js.Math.min_int(
+                                availableHeight,
+                                initialMaxHeight,
+                              ),
                             );
 
                       ReactDOM.flushSync(() => {setMaxHeight(_ => maxHeight)});
@@ -174,7 +188,7 @@ let make =
       (inputValue, options),
     );
 
-  let floatingMaxWidth =
+  let optionsMaxWidth =
     React.useMemo1(
       () =>
         items
@@ -182,6 +196,7 @@ let make =
         |> Js.Array.map(~f=label =>
              getTextWidth(label, "normal 16px Segoe UI") + 50
            )
+        |> Js.Array.concat(~other=[|0|])  // handle empty array
         |> Js.Math.maxMany_int,
       [|items|],
     );
@@ -219,11 +234,7 @@ let make =
 
   let {getReferenceProps, getFloatingProps, _}: FloatingUi.useInteractionsReturn =
     FloatingUi.useInteractions([|
-      FloatingUi.useRole(
-        context,
-        ~props=FloatingUi.useRoleOptions(~role="listbox", ()),
-        (),
-      ),
+      FloatingUi.useRole(context, ()),
       FloatingUi.useClick(context),
       FloatingUi.useDismiss(context),
     |]);
@@ -250,7 +261,6 @@ let make =
                 : None;
             },
             ~virtual_=true,
-            ~allowEscape=false,
             (),
           ),
         (),
@@ -295,33 +305,24 @@ let make =
       {"aria-activedescendant": Js.undefined},
     );
 
-  let inputProps = {
-    let onChange = (event: React.Event.Form.t) => {
-      let target = event |> React.Event.Form.target;
-      let value = target##value;
-      setInputValue(_ => value);
-      setActiveIndex(_ => None);
-    };
-
-    let onKeyDown = (event: React.Event.Keyboard.t) =>
-      if (React.Event.Keyboard.key(event) == "Enter"
-          && Option.is_some(activeIndex)) {
-        let activeIndex = Option.get(activeIndex);
-        onSelect(items[activeIndex]);
-        setSelected(_ => Some(items[activeIndex]));
-
-        setActiveIndex(_ => None);
-        setOpen(_ => false);
-        setInputValue(_ => "");
-      };
-
-    Js.Obj.assign(
-      Obj.magic(
-        getInputProps(Some(ReactDOM.domProps(~onChange, ~onKeyDown, ()))),
-      ),
-      Js.Obj.empty(),
-    );
+  let handleInputChange = (event: React.Event.Form.t) => {
+    let target = event |> React.Event.Form.target;
+    let value = target##value;
+    setInputValue(_ => value);
+    setActiveIndex(_ => None);
   };
+
+  let handleInputKeyDown = (event: React.Event.Keyboard.t) =>
+    if (React.Event.Keyboard.key(event) == "Enter"
+        && Option.is_some(activeIndex)) {
+      let activeIndex = Option.get(activeIndex);
+      onSelect(items[activeIndex]);
+      setSelected(_ => Some(items[activeIndex]));
+
+      setActiveIndex(_ => None);
+      setOpen(_ => false);
+      setInputValue(_ => "");
+    };
 
   <>
     <Spread props={getReferenceProps(None)}>
@@ -339,10 +340,25 @@ let make =
              <Spread props=floatingProps>
                <div
                  className="flex flex-col"
-                 style=floatingStyles
+                 style={ReactDOM.Style.combine(
+                   floatingStyles,
+                   ReactDOM.Style.make(
+                     ~maxHeight=string_of_int(maxHeight) ++ "px",
+                     (),
+                   ),
+                 )}
                  ref={ReactDOM.Ref.callbackDomRef(refs.setFloating)}
                  ariaLabelledby=buttonId>
-                 <Spread props=inputProps>
+                 <Spread
+                   props={getInputProps(
+                     Some(
+                       ReactDOM.domProps(
+                         ~onChange=handleInputChange,
+                         ~onKeyDown=handleInputKeyDown,
+                         (),
+                       ),
+                     ),
+                   )}>
                    <input
                      value=inputValue
                      type_="text"
@@ -366,21 +382,22 @@ let make =
                    tabIndex=(-1)>
                    {Js.Array.length(items) == 0
                       ? <p
-                          className="m-2"
                           id=noResultId
+                          className="m-2"
                           role="region"
                           ariaAtomic=true
                           ariaLive="assertive">
-                          {React.string("No country found.")}
+                          {React.string("No item found.")}
                         </p>
                       : React.null}
                    <ul
                      id=listboxId
+                     role="listbox"
                      style={ReactDOM.Style.make(
                        ~height=
                          string_of_int(rowVirtualizer.getTotalSize()) ++ "px",
                        ~position="relative",
-                       ~minWidth=string_of_int(floatingMaxWidth) ++ "px",
+                       ~minWidth=string_of_int(optionsMaxWidth) ++ "px",
                        ~width="100%",
                        (),
                      )}

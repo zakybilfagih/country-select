@@ -1,5 +1,34 @@
 open ReactHelper;
+open Bindings;
+open StyleHelper;
+
 module Item = {
+  module Style = {
+    let item = [%cx
+      {|
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      cursor: default;
+      padding: 4px 10px;
+      color: $(Colors.Light.textPrimary);
+    |}
+    ];
+
+    let active = [%cx
+      {|
+      background-color: $(Colors.Light.backgroundControlHover);
+    |}
+    ];
+
+    let selected = [%cx
+      {|
+      background-color: $(Colors.Light.backgroundSelected);
+    |}
+    ];
+  };
+
   [@react.component]
   let make =
     React.forwardRef(
@@ -14,6 +43,8 @@ module Item = {
         ~onPointerLeave=?,
         ~role=?,
         ~style=?,
+        ~ariaSetsize=?,
+        ~ariaPosinset=?,
         ref,
       ) => {
       <li
@@ -24,51 +55,132 @@ module Item = {
         ?onPointerLeave
         ?role
         ?style
+        ?ariaSetsize
+        ?ariaPosinset
         ariaSelected=selected
         ref=?{ref |> Js.Nullable.toOption |> Option.map(ReactDOM.Ref.domRef)}
         className={Cn.make([|
-          "absolute top-0 left-0 w-full cursor-default p-2",
-          active && !selected ? "bg-blue-500 text-white" : "",
-          selected ? "bg-red-500 text-white" : "",
+          Style.item,
+          textMd,
+          selected ? Style.selected : active ? Style.active : "",
         |])}>
         children
       </li>
     });
 };
 
-[%%mel.raw
-  {|
-function getTextWidth(text, font) {
-  // re-use canvas object for better performance
-  const canvas = getTextWidth.canvas || (getTextWidth.canvas = document.createElement("canvas"));
-  const context = canvas.getContext("2d");
-  context.font = font;
-  const metrics = context.measureText(text);
-  return Math.ceil(metrics.width);
-}
-|}
-];
+module Style = {
+  let floating = [%cx
+    {|
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0px 3px 18px 0px #00000026;
+    background-color: white;
+    border: 1px solid $(Colors.Light.borderFloatingAlpha);
+    border-radius: 3px;
+    overflow: hidden;
+  |}
+  ];
 
-external getTextWidth: (string, string) => int = "getTextWidth";
+  let button = [%cx
+    {|
+    display: flex;
+    gap: 5px;
+    align-items: center;
+    padding: 4px 10px;
+    color: $(Colors.Light.textPrimary);
+    background-color: white;
+    border: 1px solid $(Colors.Light.borderControlAlpha);
+    border-radius: 3px;
+  |}
+  ];
+
+  let buttonTriangle = [%cx {|
+    color: $(Colors.Light.textPrimary);
+  |}];
+
+  let searchIconContainer = [%cx
+    {|
+    position: absolute;
+    line-height: 0;
+    left: 10px;
+    right: auto;
+    top: 10px;
+  |}
+  ];
+
+  let input = [%cx
+    {|
+    border: none;
+    padding: 8px;
+    outline: none;
+    padding-block: 4px;
+    padding-left: 32px;
+    padding-right: 10px;
+    width: 100%;
+    color: black;
+
+    &::placeholder {
+      color: $(Colors.Light.textTertiary);
+    }
+  |}
+  ];
+
+  let inputContainer = [%cx
+    {|
+    position: relative;
+    padding-block: 4px;
+    border-bottom: 1px solid $(Colors.Light.borderLineAlpha);
+  |}
+  ];
+
+  let scrollContainer = [%cx
+    {|
+    padding-block: 4px;
+    overflow-y: auto;
+    background-color: white;
+  |}
+  ];
+
+  let listbox = [%cx
+    {|
+    width: 100%;
+    position: relative;
+    margin: 0px;
+    padding: 0px;
+    list-style: none;
+  |}
+  ];
+
+  let noResult = [%cx
+    {|
+    margin: 0px;
+    padding: 8px 10px;
+    color: $(Colors.Light.textPrimary)
+  |}
+  ];
+};
 
 [@react.component]
 let make =
     (
       ~options: array('item),
-      ~onSelect: 'item => unit,
-      ~initialSelected: option('item)=?,
-      ~selectLabel: 'item => string,
+      ~onSelect: option('item) => unit,
+      ~selected: option('item),
+      ~getItemLabel: 'item => string,
       ~itemEqual: ('item, 'item) => bool,
       ~renderItem: 'item => React.element,
       ~renderButton: option('item) => React.element,
       ~initialMaxHeight: int=400,
       ~initialPadding: int=25,
       ~smallViewportHeightPadding: int=5,
+      ~additionalContentWidth: int=0,
+      ~buttonAriaLabel: string="Choose item",
+      ~noResultText: string="No item found.",
     ) => {
   let (open_, setOpen) = React.useState(_ => false);
   let (pointer, setPointer) = React.useState(_ => false);
   let (activeIndex, setActiveIndex) = React.useState(_ => None);
-  let (selected, setSelected) = React.useState(_ => initialSelected);
 
   let (maxHeight, setMaxHeight) = React.useState(_ => initialMaxHeight);
   let (padding, setPadding) = React.useState(_ => initialPadding);
@@ -179,7 +291,7 @@ let make =
         options
         |> Js.Array.filter(~f=item => {
              item
-             |> selectLabel
+             |> getItemLabel
              |> Js.String.toLowerCase
              |> Js.String.startsWith(
                   ~prefix=Js.String.toLowerCase(inputValue),
@@ -192,9 +304,11 @@ let make =
     React.useMemo1(
       () =>
         items
-        |> Js.Array.map(~f=selectLabel)
+        |> Js.Array.map(~f=getItemLabel)
         |> Js.Array.map(~f=label =>
-             getTextWidth(label, "normal 16px Segoe UI") + 50
+             TextWidth.get(label, "normal 14px Arial")
+             + 42
+             + additionalContentWidth
            )
         |> Js.Array.concat(~other=[|0|])  // handle empty array
         |> Js.Math.maxMany_int,
@@ -226,7 +340,7 @@ let make =
       TanstackVirtual.Virtualizer.options(
         ~count=Js.Array.length(items),
         ~overscan=5,
-        ~estimateSize=_ => 35,
+        ~estimateSize=_ => 26,
         ~getScrollElement=() => scrollRef.current,
         (),
       ),
@@ -316,8 +430,7 @@ let make =
     if (React.Event.Keyboard.key(event) == "Enter"
         && Option.is_some(activeIndex)) {
       let activeIndex = Option.get(activeIndex);
-      onSelect(items[activeIndex]);
-      setSelected(_ => Some(items[activeIndex]));
+      onSelect(Some(items[activeIndex]));
 
       setActiveIndex(_ => None);
       setOpen(_ => false);
@@ -330,16 +443,18 @@ let make =
         type_="button"
         id=buttonId
         ref={ReactDOM.Ref.callbackDomRef(refs.setReference)}
-        ariaLabel="Choose country">
+        ariaLabel=buttonAriaLabel
+        className={Cn.make([|Style.button, textMd|])}>
         {renderButton(selected)}
+        <Icon.Triangle className=Style.buttonTriangle />
       </button>
     </Spread>
-    <FloatingUi.FloatingPortal>
-      {open_
-         ? <FloatingUi.FloatingFocusManager context modal=false>
+    {open_
+       ? <FloatingUi.FloatingPortal>
+           <FloatingUi.FloatingFocusManager context modal=false>
              <Spread props=floatingProps>
                <div
-                 className="flex flex-col"
+                 className=Style.floating
                  style={ReactDOM.Style.combine(
                    floatingStyles,
                    ReactDOM.Style.make(
@@ -349,32 +464,37 @@ let make =
                  )}
                  ref={ReactDOM.Ref.callbackDomRef(refs.setFloating)}
                  ariaLabelledby=buttonId>
-                 <Spread
-                   props={getInputProps(
-                     Some(
-                       ReactDOM.domProps(
-                         ~onChange=handleInputChange,
-                         ~onKeyDown=handleInputKeyDown,
-                         (),
+                 <div className=Style.inputContainer>
+                   <div className=Style.searchIconContainer>
+                     <Icon.Search />
+                   </div>
+                   <Spread
+                     props={getInputProps(
+                       Some(
+                         ReactDOM.domProps(
+                           ~onChange=handleInputChange,
+                           ~onKeyDown=handleInputKeyDown,
+                           (),
+                         ),
                        ),
-                     ),
-                   )}>
-                   <input
-                     value=inputValue
-                     type_="text"
-                     className="border-2 p-2 outline-none dark:bg-gray-600/50"
-                     placeholder="Search country"
-                     ariaAutocomplete="list"
-                     ariaExpanded=true
-                     role="combobox"
-                     ariaControls={
-                       Js.Array.length(items) == 0 ? noResultId : listboxId
-                     }
-                   />
-                 </Spread>
+                     )}>
+                     <input
+                       value=inputValue
+                       type_="text"
+                       className={Cn.make([|Style.input, textMd|])}
+                       placeholder="Search"
+                       ariaAutocomplete="list"
+                       ariaExpanded=true
+                       role="combobox"
+                       ariaControls={
+                         Js.Array.length(items) == 0 ? noResultId : listboxId
+                       }
+                     />
+                   </Spread>
+                 </div>
                  <div
                    ref={ReactDOM.Ref.domRef(scrollRef)}
-                   className="overflow-y-auto bg-white/80"
+                   className=Style.scrollContainer
                    style={ReactDOM.Style.make(
                      ~maxHeight=string_of_int(maxHeight) ++ "px",
                      (),
@@ -383,22 +503,21 @@ let make =
                    {Js.Array.length(items) == 0
                       ? <p
                           id=noResultId
-                          className="m-2"
+                          className={Cn.make([|Style.noResult, textMd|])}
                           role="region"
                           ariaAtomic=true
                           ariaLive="assertive">
-                          {React.string("No item found.")}
+                          {React.string(noResultText)}
                         </p>
                       : React.null}
                    <ul
                      id=listboxId
                      role="listbox"
+                     className=Style.listbox
                      style={ReactDOM.Style.make(
                        ~height=
                          string_of_int(rowVirtualizer.getTotalSize()) ++ "px",
-                       ~position="relative",
                        ~minWidth=string_of_int(optionsMaxWidth) ++ "px",
-                       ~width="100%",
                        (),
                      )}
                      onKeyDown={_ => {setPointer(_ => false)}}
@@ -409,21 +528,15 @@ let make =
                            let item = items[virtualItem.index];
                            let index = virtualItem.index;
                            let isActive =
-                             (
-                               activeIndex
-                               |> Option.map(activeIndex =>
-                                    activeIndex == index
-                                  )
-                             )
-                             ->(Option.value(~default=false));
+                             Option.value(
+                               activeIndex |> Option.map(Int.equal(index)),
+                               ~default=false,
+                             );
                            let isSelected =
-                             (
-                               selectedIndex
-                               |> Option.map(selectedIndex =>
-                                    selectedIndex == index
-                                  )
-                             )
-                             ->(Option.value(~default=false));
+                             Option.value(
+                               selectedIndex |> Option.map(Int.equal(index)),
+                               ~default=false,
+                             );
 
                            <Spread
                              key={virtualItem.key}
@@ -432,8 +545,7 @@ let make =
                                  ReactDOM.domProps(
                                    ~onClick=
                                      _ => {
-                                       onSelect(item);
-                                       setSelected(_ => Some(item));
+                                       onSelect(Some(item));
 
                                        setOpen(_ => false);
                                        setActiveIndex(_ => None);
@@ -447,7 +559,7 @@ let make =
                                ref={ReactDOM.Ref.callbackDomRef(
                                  Js.Array.unsafe_set(listRef.current, index),
                                )}
-                               id={listboxId ++ "-" ++ virtualItem.key}
+                               id={listboxId ++ virtualItem.key}
                                active=isActive
                                selected=isSelected
                                style={ReactDOM.Style.make(
@@ -458,7 +570,9 @@ let make =
                                    ++ string_of_int(virtualItem.start)
                                    ++ "px)",
                                  (),
-                               )}>
+                               )}
+                               ariaSetsize={Js.Array.length(items)}
+                               ariaPosinset={virtualItem.index + 1}>
                                {renderItem(item)}
                              </Item>
                            </Spread>;
@@ -469,7 +583,7 @@ let make =
                </div>
              </Spread>
            </FloatingUi.FloatingFocusManager>
-         : React.null}
-    </FloatingUi.FloatingPortal>
+         </FloatingUi.FloatingPortal>
+       : React.null}
   </>;
 };

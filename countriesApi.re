@@ -13,6 +13,6 @@ let apiUrl = "https://gist.githubusercontent.com/rusty-key/659db3f4566df459bd59c
 
 let getAll = () => {
   open Promise.Let_syntax;
-  let+ data = FetchJson.fetchJson(apiUrl);
+  let+ data = FetchJson.fetch(apiUrl);
   countries_of_json(data)
 };

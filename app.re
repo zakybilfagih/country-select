@@ -1,65 +1,27 @@
-module Colors = {
-  let primary = `hex("333333");
-  let selected = `hex("FFDBB3");
-  let hover = `rgba((46, 60, 86, `percent(7.)));
+[%%mel.raw {|import "flag-icons/css/flag-icons.min.css"|}];
+module Style = {
+  let itemContainer = [%cx {|
+    display: flex;
+    gap: 8px;
+  |}];
+
+  let flag = [%cx {|
+    width: 14px !important;
+  |}];
+
+  let buttonLabelContainer = [%cx
+    {|
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  |}
+  ];
 };
-
-let colorPrimary = [%cx {| color: $(Colors.primary) |}];
-let backgroundSelected = [%cx {| background-color: $(Colors.selected) |}];
-
-let textMd = [%cx
-  {|
-  font-family: Arial;
-  font-size: 14px;
-  font-weight: 400;
-  line-height: 18px;
-|}
-];
-
-let paddingBlockSm = [%cx {|
-  padding-block: 4px;
-|}];
-
-let menu = [%cx {|
-  padding-inline: 0px;
-  overflow: auto;
-  margin: 0;
-|}];
-
-let comboboxContainer = [%cx
-  {|
-  display: none;
-  position: absolute;
-  left: 0;
-  top: 28px;
-  box-shadow: 0px 3px 18px 0px #00000026;
-  background-color: white;
-  border: 1px solid rgba(0, 0, 0, 0.1);
-  border-radius: 3px;
-  max-width: max-content;
-  max-height: 450px;
-  flex-direction: column;
-|}
-];
-
-let displayBlock = [%cx "display: block"];
-let displayFlex = [%cx "display: flex"];
-
-let menuItem = [%cx
-  {|
-  list-style: none;
-  padding-block: 4px;
-  padding-inline: 10px;
-
-  &:hover {
-    background-color: $(Colors.hover);
-  }
-|}
-];
 
 [@react.component]
 let make = () => {
   let (countries, setCountries) = React.useState(_ => [||]);
+  let (country, setCountry) = React.useState(_ => None);
 
   let fetchCountries = _ => {
     let _ = {
@@ -75,21 +37,44 @@ let make = () => {
     None;
   });
 
-  <main className="px-20">
-    <div style={ReactDOM.Style.make(~height="1000px", ())} />
+  <main style={ReactDOM.Style.make(~padding="0 50px", ())}>
+    <div style={ReactDOM.Style.make(~height="800px", ())} />
     <Combobox
       options=countries
-      selectLabel={(country: CountriesApi.t) => country.label}
-      onSelect={country => Js.log(country)}
+      getItemLabel={(country: CountriesApi.t) => country.label}
+      selected=country
+      onSelect={country => setCountry(_ => country)}
       itemEqual={(a: CountriesApi.t, b: CountriesApi.t) => a.value == b.value}
+      buttonAriaLabel="Choose country"
+      noResultText="No country found."
       renderItem={(country: CountriesApi.t) => {
         let countryCode = country.value;
-        <>
-          <span className={j|fi fi-$(countryCode)|j} />
+        <div className=Style.itemContainer>
+          <span
+            className={Cn.make([|{j|fi fi-$(countryCode)|j}, Style.flag|])}
+          />
           {React.string(country.label)}
-        </>;
+        </div>;
       }}
-      renderButton={_ => React.string("Click me")}
+      renderButton={_ => {
+        let label =
+          Option.value(
+            ~default="Country",
+            Option.map((country: CountriesApi.t) => country.label, country),
+          );
+        let countryCode =
+          Option.map((country: CountriesApi.t) => country.value, country);
+        <div className=Style.buttonLabelContainer>
+          {switch (countryCode) {
+           | Some(countryCode) =>
+             <span
+               className={Cn.make([|{j|fi fi-$(countryCode)|j}, Style.flag|])}
+             />
+           | None => React.null
+           }}
+          {React.string(label)}
+        </div>;
+      }}
     />
     <div style={ReactDOM.Style.make(~height="1000px", ())} />
   </main>;

@@ -1,6 +1,6 @@
 exception Invalid_json(string);
 
-let fetchJson = url => {
+let fetch = url => {
   open Promise.Let_syntax;
   let* res = Fetch.fetch(url);
 

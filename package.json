@@ -2,7 +2,7 @@
   "name": "country-select",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "_build/default/output/index.js",
   "scripts": {
     "dev": "vite _build/default/output"
   },

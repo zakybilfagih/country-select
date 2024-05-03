@@ -1,4 +1,4 @@
-[%%mel.raw {|import "./index.css"|}];
+[%%mel.raw {|import "modern-normalize/modern-normalize.css"|}];
 
 let element = ReactDOM.querySelector("#root");
 let component = <React.StrictMode> <App /> </React.StrictMode>;

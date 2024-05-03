@@ -1,9 +1,7 @@
-include Promise;
-
 exception Invalid_json(string);
 
 let fetchJson = url => {
-  open Js.Promise.Let_syntax;
+  open Promise.Let_syntax;
   let* res = Fetch.fetch(url);
 
   if (!Fetch.Response.ok(res)) {

@@ -1,6 +1,8 @@
 module Middleware = {
   type t;
 
+  [@mel.module "@floating-ui/react"] external shift: unit => t = "shift";
+
   [@mel.module "@floating-ui/react"] external offset: int => t = "offset";
 
   [@deriving jsProperties]
@@ -56,8 +58,10 @@ external autoUpdate: whileElementsMountedFn = "autoUpdate";
 [@deriving jsProperties]
 type useFloatingOptions = {
   [@mel.optional]
-  whileElementsMounted: option(whileElementsMountedFn),
+  placement: option(string),
   [@mel.optional]
+  whileElementsMounted: option(whileElementsMountedFn),
+  [@mel.optional] [@mel.as "open"]
   open_: option(bool),
   [@mel.optional]
   middleware: option(array(Middleware.t)),
@@ -70,12 +74,108 @@ type useFloatingRefs = {
   setFloating: Js.nullable(Dom.element) => unit,
 };
 
-type useFloatingContext;
+type floatingContext;
 
 type useFloatingReturn = {
-  floatingStyles: ReactDOM.style,
+  floatingStyles: ReactDOM.Style.t,
   refs: useFloatingRefs,
-  context: useFloatingContext,
+  context: floatingContext,
+  isPositioned: bool,
 };
 [@mel.module "@floating-ui/react"]
 external useFloating: useFloatingOptions => useFloatingReturn = "useFloating";
+
+type elementProps;
+[@deriving jsProperties]
+type useRoleOptions = {
+  [@mel.optional]
+  enabled: option(bool),
+  [@mel.optional]
+  role: option(string),
+};
+[@mel.module "@floating-ui/react"]
+external useRole:
+  (floatingContext, ~props: useRoleOptions=?, unit) => elementProps =
+  "useRole";
+
+[@deriving jsProperties]
+type useFocusOptions = {
+  [@mel.optional]
+  enabled: option(bool),
+  [@mel.optional]
+  visibleOnly: option(bool),
+};
+[@mel.module "@floating-ui/react"]
+external useFocus:
+  (floatingContext, ~props: useFocusOptions=?, unit) => elementProps =
+  "useFocus";
+
+[@mel.module "@floating-ui/react"]
+external useDismiss: floatingContext => elementProps = "useDismiss";
+
+[@mel.module "@floating-ui/react"]
+external useClick: floatingContext => elementProps = "useClick";
+
+[@deriving jsProperties]
+type scrollItemIntoViewOptions = {
+  [@mel.optional]
+  block: option(string),
+  [@mel.optional]
+  inline: option(string),
+  [@mel.optional]
+  behaviour: option(string),
+};
+
+[@deriving jsProperties]
+type useListNavigationOptions = {
+  listRef: React.ref(array(Js.nullable(Dom.element))),
+  activeIndex: Js.nullable(int),
+  [@mel.optional]
+  selectedIndex: option(Js.nullable(int)),
+  [@mel.optional]
+  onNavigate: option(Js.nullable(int) => unit),
+  [@mel.optional] [@mel.as "virtual"]
+  virtual_: option(bool),
+  [@mel.optional]
+  loop: option(bool),
+  [@mel.optional]
+  allowEscape: option(bool),
+  [@mel.optional]
+  focusItemOnOpen: option(bool),
+  [@mel.optional]
+  disabledIndices: option(array(int)),
+  [@mel.optional]
+  scrollItemIntoView: option(scrollItemIntoViewOptions),
+};
+[@mel.module "@floating-ui/react"]
+external useListNavigation:
+  (floatingContext, ~props: useListNavigationOptions=?, unit) => elementProps =
+  "useListNavigation";
+
+type useInteractionsReturn = {
+  getReferenceProps: option(ReactDOM.domProps) => ReactDOM.domProps,
+  getFloatingProps: option(ReactDOM.domProps) => ReactDOM.domProps,
+  getItemProps: option(ReactDOM.domProps) => ReactDOM.domProps,
+};
+[@mel.module "@floating-ui/react"]
+external useInteractions: array(elementProps) => useInteractionsReturn =
+  "useInteractions";
+
+module FloatingPortal = {
+  [@react.component] [@mel.module "@floating-ui/react"]
+  external make: (~children: React.element) => React.element =
+    "FloatingPortal";
+};
+module FloatingFocusManager = {
+  [@react.component] [@mel.module "@floating-ui/react"]
+  external make:
+    (
+      ~context: floatingContext,
+      ~initialFocus: int=?,
+      ~visuallyHiddenDismiss: bool=?,
+      ~modal: bool=?,
+      ~children: React.element
+    ) =>
+    React.element =
+    "FloatingFocusManager";
+};

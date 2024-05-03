@@ -1,250 +1,458 @@
-//import {
-//  autoUpdate,
-//  flip,
-//  FloatingFocusManager,
-//  FloatingPortal,
-//  offset,
-//  size,
-//  useDismiss,
-//  useFloating,
-//  useFocus,
-//  useInteractions,
-//  useListNavigation,
-//  useRole,
-//} from '@floating-ui/react';
-//import classNames from 'classnames';
-//import {useEffect} from 'react';
-//import {forwardRef, useRef, useState} from 'react';
-//
-//const Item = forwardRef(function Item(
-//  {children, active, ...rest},
-//  ref,
-//) {
-//  return (
-//    <li
-//      ref={ref}
-//      className={classNames(
-//        'cursor-default scroll-my-1 rounded-md p-2',
-//        {
-//          'bg-blue-500 text-white': active,
-//        },
-//      )}
-//      {...rest}
-//    >
-//      {children}
-//    </li>
-//  );
-//});
-//
-//export function ComboboxDemo() {
-//  const [open, setOpen] = useState(false);
-//  const [inputValue, setInputValue] = useState('');
-//  const [activeIndex, setActiveIndex] = useState(null);
-//  const [padding, setPadding] = useState(25);
-//
-//  useEffect(() => {
-//    function onResize() {
-//      setPadding(window.visualViewport?.height < 400 ? 5 : 25);
-//    }
-//
-//    window.addEventListener('resize', onResize);
-//    window.visualViewport?.addEventListener('resize', onResize);
-//    return () => {
-//      window.removeEventListener('resize', onResize);
-//      window.visualViewport?.removeEventListener(
-//        'resize',
-//        onResize,
-//      );
-//    };
-//  }, []);
-//
-//  const listRef = useRef([]);
-//
-//  const {refs, floatingStyles, context} = useFloating({
-//    open,
-//    whileElementsMounted: autoUpdate,
-//    onOpenChange: setOpen,
-//    middleware: [
-//      offset(5),
-//      size({
-//        apply({rects, elements, availableHeight, placement}) {
-//          Object.assign(elements.floating.style, {
-//            maxHeight:
-//              placement === 'bottom'
-//                ? `${Math.max(
-//                    padding === 25 ? 150 : 75,
-//                    availableHeight,
-//                  )}px`
-//                : `${Math.max(50, availableHeight)}px`,
-//            width: `${rects.reference.width}px`,
-//          });
-//        },
-//        padding,
-//      }),
-//      flip({padding, fallbackStrategy: 'initialPlacement'}),
-//    ],
-//  });
-//
-//  const role = useRole(context, {role: 'combobox'});
-//  const focus = useFocus(context, {
-//    enabled: inputValue.length > 0,
-//  });
-//  const dismiss = useDismiss(context);
-//  const navigation = useListNavigation(context, {
-//    listRef,
-//    activeIndex,
-//    onNavigate: setActiveIndex,
-//    virtual: true,
-//    loop: true,
-//    allowEscape: true,
-//  });
-//
-//  const {getReferenceProps, getFloatingProps, getItemProps} =
-//    useInteractions([role, dismiss, navigation, focus]);
-//
-//  function onChange(event) {
-//    const value = event.target.value;
-//    setInputValue(value);
-//
-//    if (value) {
-//      setOpen(true);
-//    } else {
-//      setOpen(false);
-//    }
-//  }
-//
-//  const items = fruits.filter((item) =>
-//    item.toLowerCase().startsWith(inputValue.toLowerCase()),
-//  );
-//
-//  return (
-//    <>
-//      <input
-//        ref={refs.setReference}
-//        value={inputValue}
-//        className="rounded border-2 border-gray-300 p-2 outline-none focus:border-blue-500 dark:border-gray-500 dark:bg-gray-600/50"
-//        placeholder="Enter balloon flavor"
-//        aria-autocomplete="list"
-//        aria-labelledby={
-//          open && items.length === 0
-//            ? 'combobox-no-results'
-//            : undefined
-//        }
-//        {...getReferenceProps({
-//          onChange,
-//          onKeyDown(event) {
-//            if (
-//              event.key === 'Enter' &&
-//              activeIndex != null &&
-//              items[activeIndex]
-//            ) {
-//              setInputValue(items[activeIndex]);
-//              setActiveIndex(null);
-//              setOpen(false);
-//            }
-//          },
-//        })}
-//      />
-//      {open && (
-//        <FloatingPortal>
-//          <FloatingFocusManager
-//            context={context}
-//            initialFocus={-1}
-//            visuallyHiddenDismiss
-//          >
-//            <div
-//              ref={refs.setFloating}
-//              className="z-10 max-h-[20rem] overflow-y-auto rounded-lg border border-slate-900/5 bg-white/80 bg-clip-padding p-1 text-left shadow-lg outline-none backdrop-blur-lg dark:bg-gray-600/80"
-//              style={floatingStyles}
-//              {...getFloatingProps()}
-//            >
-//              {items.length === 0 && (
-//                <p
-//                  className="m-2"
-//                  id="combobox-no-results"
-//                  role="region"
-//                  aria-atomic="true"
-//                  aria-live="assertive"
-//                >
-//                  No flavors found.
-//                </p>
-//              )}
-//              {items.map((item, index) => (
-//                <Item
-//                  key={item}
-//                  ref={(node) => {
-//                    listRef.current[index] = node;
-//                  }}
-//                  active={activeIndex === index}
-//                  {...getItemProps({
-//                    onClick() {
-//                      setInputValue(item);
-//                      setOpen(false);
-//                    },
-//                  })}
-//                >
-//                  {item}
-//                </Item>
-//              ))}
-//            </div>
-//          </FloatingFocusManager>
-//        </FloatingPortal>
-//      )}
-//    </>
-//  );
-//}
+open ReactHelper;
+module Item = {
+  [@react.component]
+  let make =
+    React.forwardRef(
+      (
+        ~children,
+        ~active,
+        ~selected,
+        ~id=?,
+        ~onClick=?,
+        ~onFocus=?,
+        ~onMouseMove=?,
+        ~onPointerLeave=?,
+        ~role=?,
+        ~style=?,
+        ref,
+      ) => {
+      <li
+        ?id
+        ?onClick
+        ?onFocus
+        ?onMouseMove
+        ?onPointerLeave
+        ?role
+        ?style
+        ariaSelected=selected
+        ref=?{ref |> Js.Nullable.toOption |> Option.map(ReactDOM.Ref.domRef)}
+        className={Cn.make([|
+          "absolute top-0 left-0 w-full cursor-default p-2",
+          active && !selected ? "bg-blue-500 text-white" : "",
+          selected ? "bg-red-500 text-white" : "",
+        |])}>
+        children
+      </li>
+    });
+};
+
+[%%mel.raw
+  {|
+function getTextWidth(text, font) {
+  // re-use canvas object for better performance
+  const canvas = getTextWidth.canvas || (getTextWidth.canvas = document.createElement("canvas"));
+  const context = canvas.getContext("2d");
+  context.font = font;
+  const metrics = context.measureText(text);
+  return Math.ceil(metrics.width);
+}
+|}
+];
+
+external getTextWidth: (string, string) => int = "getTextWidth";
 
 [@react.component]
-let make = () => {
+let make =
+    (
+      ~options: array('item),
+      ~onSelect: 'item => unit,
+      ~initialSelected: option('item)=?,
+      ~selectLabel: 'item => string,
+      ~itemEqual: ('item, 'item) => bool,
+      ~renderItem: 'item => React.element,
+      ~renderButton: option('item) => React.element,
+    ) => {
   let (open_, setOpen) = React.useState(_ => false);
-  let (padding, _setPadding) = React.useState(_ => 25);
+  let (pointer, setPointer) = React.useState(_ => false);
+  let (activeIndex, setActiveIndex) = React.useState(_ => None);
+  let (selected, setSelected) = React.useState(_ => initialSelected);
 
-  let _rett =
+  let (maxHeight, setMaxHeight) = React.useState(_ => 400);
+  let (padding, setPadding) = React.useState(_ => 25);
+
+  let (inputValue, setInputValue) = React.useState(_ => "");
+
+  let noResultId = React.useId();
+  let buttonId = React.useId();
+  let listboxId = React.useId();
+
+  if (!open_ && pointer) {
+    setPointer(_ => false);
+  };
+
+  React.useEffect0(() => {
+    let onResize = _ => {
+      let height =
+        Webapi.Dom.window |> Window.visualViewport |> VisualViewport.height;
+      let newPadding = height |> Option.map(height => height < 400 ? 5 : 25);
+      setPadding(_ => Option.value(newPadding, ~default=25));
+    };
+
+    Webapi.Dom.window
+    |> Webapi.Dom.Window.addEventListener("resize", onResize);
+    Webapi.Dom.window
+    |> Window.visualViewport
+    |> VisualViewport.addResizeEventListener(onResize);
+
+    Some(
+      () => {
+        Webapi.Dom.window
+        |> Webapi.Dom.Window.removeEventListener("resize", onResize);
+        Webapi.Dom.window
+        |> Window.visualViewport
+        |> VisualViewport.removeResizeEventListner(onResize);
+      },
+    );
+  });
+
+  let listRef = React.useRef([||]);
+
+  let {refs, floatingStyles, context, isPositioned}: FloatingUi.useFloatingReturn =
     FloatingUi.useFloating(
       FloatingUi.useFloatingOptions(
         ~open_,
+        ~placement="bottom-start",
         ~whileElementsMounted=FloatingUi.autoUpdate,
-        ~onOpenChange=value => setOpen(_ => value),
-        ~middleware=[|
-          FloatingUi.Middleware.offset(5),
-          FloatingUi.Middleware.size(
-            FloatingUi.Middleware.sizeOptions(
-              ~padding=25,
-              ~apply=
-                ({rects, elements, availableHeight, placement}) => {
-                  let maxHeight =
-                    placement == "bottom"
-                      ? Js.Math.max_int(
-                          padding == 25 ? 150 : 75,
-                          availableHeight,
-                        )
-                      : Js.Math.max_int(50, availableHeight);
-                  let width = rects.reference.width;
+        ~onOpenChange=
+          value => {
+            setOpen(_ => value);
+            if (!value) {
+              setActiveIndex(_ => None);
+            };
+          },
+        ~middleware=
+          FloatingUi.Middleware.(
+            [|
+              shift(),
+              offset(5),
+              size(
+                sizeOptions(
+                  ~padding,
+                  ~apply=
+                    ({availableHeight, placement, _}) => {
+                      let maxHeight =
+                        Js.String.startsWith(~prefix="bottom", placement)
+                          ? Js.Math.max_int(
+                              padding == 25 ? 190 : 115,
+                              Js.Math.min_int(availableHeight, 410),
+                            )
+                          : Js.Math.max_int(
+                              90,
+                              Js.Math.min_int(availableHeight, 410),
+                            );
 
-                  Js.Obj.assign(
-                    Obj.magic(
-                      Webapi.Dom.HtmlElement.style(elements.floating),
-                    ),
-                    {
-                      "maxHeight": string_of_int(maxHeight) ++ "px",
-                      "width": string_of_int(width) ++ "px",
+                      ReactDOM.flushSync(() => {setMaxHeight(_ => maxHeight)});
                     },
-                  )
-                  |> ignore;
-                },
-              (),
-            ),
+                  (),
+                ),
+              ),
+              flip(
+                flipOptions(
+                  ~padding,
+                  ~fallbackStrategy="initialPlacement",
+                  (),
+                ),
+              ),
+            |]
           ),
-          FloatingUi.Middleware.flip(
-            FloatingUi.Middleware.flipOptions(
-              ~padding,
-              ~fallbackStrategy="initialPlacement",
-              (),
-            ),
-          ),
-        |],
         (),
       ),
     );
-  React.null;
+
+  let items =
+    React.useMemo2(
+      () =>
+        options
+        |> Js.Array.filter(~f=item => {
+             item
+             |> selectLabel
+             |> Js.String.toLowerCase
+             |> Js.String.startsWith(
+                  ~prefix=Js.String.toLowerCase(inputValue),
+                )
+           }),
+      (inputValue, options),
+    );
+
+  let floatingMaxWidth =
+    React.useMemo1(
+      () =>
+        items
+        |> Js.Array.map(~f=selectLabel)
+        |> Js.Array.map(~f=label =>
+             getTextWidth(label, "normal 16px Segoe UI") + 50
+           )
+        |> Js.Math.maxMany_int,
+      [|items|],
+    );
+
+  let selectedIndex =
+    React.useMemo2(
+      () => {
+        let index =
+          (
+            selected
+            |> Option.map(selected =>
+                 Js.Array.findIndex(
+                   ~f=item => {itemEqual(selected, item)},
+                   items,
+                 )
+               )
+          )
+          ->(Option.value(~default=-1));
+        index != (-1) ? Some(index) : None;
+      },
+      (selected, items),
+    );
+
+  let scrollRef = React.useRef(Js.Nullable.null);
+  let rowVirtualizer =
+    TanstackVirtual.Virtualizer.use(
+      TanstackVirtual.Virtualizer.options(
+        ~count=Js.Array.length(items),
+        ~overscan=5,
+        ~estimateSize=_ => 35,
+        ~getScrollElement=() => scrollRef.current,
+        (),
+      ),
+    );
+
+  let {getReferenceProps, getFloatingProps, _}: FloatingUi.useInteractionsReturn =
+    FloatingUi.useInteractions([|
+      FloatingUi.useRole(
+        context,
+        ~props=FloatingUi.useRoleOptions(~role="listbox", ()),
+        (),
+      ),
+      FloatingUi.useClick(context),
+      FloatingUi.useDismiss(context),
+    |]);
+
+  let {
+    getReferenceProps: getInputProps,
+    getFloatingProps: getListFloatingProps,
+    getItemProps,
+  }: FloatingUi.useInteractionsReturn =
+    FloatingUi.useInteractions([|
+      FloatingUi.useListNavigation(
+        context,
+        ~props=
+          FloatingUi.useListNavigationOptions(
+            ~listRef,
+            ~selectedIndex=Js.Nullable.fromOption(selectedIndex),
+            ~activeIndex=Js.Nullable.fromOption(activeIndex),
+            ~onNavigate=?{
+              open_
+                ? Some(
+                    activeIndex =>
+                      setActiveIndex(_ => Js.Nullable.toOption(activeIndex)),
+                  )
+                : None;
+            },
+            ~virtual_=true,
+            ~allowEscape=false,
+            (),
+          ),
+        (),
+      ),
+    |]);
+
+  React.useLayoutEffect6(
+    () => {
+      if (isPositioned && !pointer) {
+        if (Option.is_none(activeIndex)
+            && Option.is_none(selectedIndex)
+            && Js.Array.length(rowVirtualizer.getVirtualItems()) > 0) {
+          rowVirtualizer.scrollToIndex(. 0, None);
+        };
+        if (Option.is_some(activeIndex)) {
+          rowVirtualizer.scrollToIndex(. Option.get(activeIndex), None);
+        };
+      };
+      None;
+    },
+    (rowVirtualizer, isPositioned, activeIndex, pointer, selectedIndex, refs),
+  );
+
+  React.useLayoutEffect3(
+    () => {
+      if (isPositioned && Option.is_some(selectedIndex)) {
+        let selectedIndex = Option.get(selectedIndex);
+        rowVirtualizer.scrollToIndex(.
+          selectedIndex,
+          Some(TanstackVirtual.scrollToIndexOptions(~align="start", ())),
+        );
+        setActiveIndex(_ => Some(selectedIndex));
+      };
+      None;
+    },
+    (rowVirtualizer, isPositioned, selectedIndex),
+  );
+
+  let floatingProps =
+    Js.Obj.assign(
+      Obj.magic(getFloatingProps(Some(getListFloatingProps(None)))),
+      {"aria-activedescendant": Js.undefined},
+    );
+
+  let inputProps = {
+    let onChange = (event: React.Event.Form.t) => {
+      let target = event |> React.Event.Form.target;
+      let value = target##value;
+      setInputValue(_ => value);
+      setActiveIndex(_ => None);
+    };
+
+    let onKeyDown = (event: React.Event.Keyboard.t) =>
+      if (React.Event.Keyboard.key(event) == "Enter"
+          && Option.is_some(activeIndex)) {
+        let activeIndex = Option.get(activeIndex);
+        onSelect(items[activeIndex]);
+        setSelected(_ => Some(items[activeIndex]));
+
+        setActiveIndex(_ => None);
+        setOpen(_ => false);
+        setInputValue(_ => "");
+      };
+
+    Js.Obj.assign(
+      Obj.magic(
+        getInputProps(Some(ReactDOM.domProps(~onChange, ~onKeyDown, ()))),
+      ),
+      Js.Obj.empty(),
+    );
+  };
+
+  <>
+    <Spread props={getReferenceProps(None)}>
+      <button
+        type_="button"
+        id=buttonId
+        ref={ReactDOM.Ref.callbackDomRef(refs.setReference)}
+        ariaLabel="Choose country">
+        {renderButton(selected)}
+      </button>
+    </Spread>
+    <FloatingUi.FloatingPortal>
+      {open_
+         ? <FloatingUi.FloatingFocusManager context modal=false>
+             <Spread props=floatingProps>
+               <div
+                 className="flex flex-col"
+                 style=floatingStyles
+                 ref={ReactDOM.Ref.callbackDomRef(refs.setFloating)}
+                 ariaLabelledby=buttonId>
+                 <Spread props=inputProps>
+                   <input
+                     value=inputValue
+                     type_="text"
+                     className="border-2 p-2 outline-none dark:bg-gray-600/50"
+                     placeholder="Search country"
+                     ariaAutocomplete="list"
+                     ariaExpanded=true
+                     role="combobox"
+                     ariaControls={
+                       Js.Array.length(items) == 0 ? noResultId : listboxId
+                     }
+                   />
+                 </Spread>
+                 <div
+                   ref={ReactDOM.Ref.domRef(scrollRef)}
+                   className="overflow-y-auto bg-white/80"
+                   style={ReactDOM.Style.make(
+                     ~maxHeight=string_of_int(maxHeight) ++ "px",
+                     (),
+                   )}
+                   tabIndex=(-1)>
+                   {Js.Array.length(items) == 0
+                      ? <p
+                          className="m-2"
+                          id=noResultId
+                          role="region"
+                          ariaAtomic=true
+                          ariaLive="assertive">
+                          {React.string("No country found.")}
+                        </p>
+                      : React.null}
+                   <ul
+                     id=listboxId
+                     style={ReactDOM.Style.make(
+                       ~height=
+                         string_of_int(rowVirtualizer.getTotalSize()) ++ "px",
+                       ~position="relative",
+                       ~minWidth=string_of_int(floatingMaxWidth) ++ "px",
+                       ~width="100%",
+                       (),
+                     )}
+                     onKeyDown={_ => {setPointer(_ => false)}}
+                     onPointerMove={_ => {setPointer(_ => true)}}>
+                     {rowVirtualizer.getVirtualItems()
+                      |> Js.Array.map(
+                           ~f=(virtualItem: TanstackVirtual.virtualItem) => {
+                           let item = items[virtualItem.index];
+                           let index = virtualItem.index;
+                           let isActive =
+                             (
+                               activeIndex
+                               |> Option.map(activeIndex =>
+                                    activeIndex == index
+                                  )
+                             )
+                             ->(Option.value(~default=false));
+                           let isSelected =
+                             (
+                               selectedIndex
+                               |> Option.map(selectedIndex =>
+                                    selectedIndex == index
+                                  )
+                             )
+                             ->(Option.value(~default=false));
+
+                           <Spread
+                             key={virtualItem.key}
+                             props={getItemProps(
+                               Some(
+                                 ReactDOM.domProps(
+                                   ~onClick=
+                                     _ => {
+                                       onSelect(item);
+                                       setSelected(_ => Some(item));
+
+                                       setOpen(_ => false);
+                                       setActiveIndex(_ => None);
+                                       setInputValue(_ => "");
+                                     },
+                                   (),
+                                 ),
+                               ),
+                             )}>
+                             <Item
+                               ref={ReactDOM.Ref.callbackDomRef(
+                                 Js.Array.unsafe_set(listRef.current, index),
+                               )}
+                               id={listboxId ++ "-" ++ virtualItem.key}
+                               active=isActive
+                               selected=isSelected
+                               style={ReactDOM.Style.make(
+                                 ~height=
+                                   string_of_int(virtualItem.size) ++ "px",
+                                 ~transform=
+                                   "translateY("
+                                   ++ string_of_int(virtualItem.start)
+                                   ++ "px)",
+                                 (),
+                               )}>
+                               {renderItem(item)}
+                             </Item>
+                           </Spread>;
+                         })
+                      |> React.array}
+                   </ul>
+                 </div>
+               </div>
+             </Spread>
+           </FloatingUi.FloatingFocusManager>
+         : React.null}
+    </FloatingUi.FloatingPortal>
+  </>;
 };

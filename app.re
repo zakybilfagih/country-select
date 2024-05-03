@@ -64,50 +64,36 @@ let cn = classNames => {
 [@react.component]
 let make = () => {
   let (countries, setCountries) = React.useState(_ => [||]);
-  let (filter, setFilter) = React.useState(_ => "");
-  let (openList, setOpenList) = React.useState(_ => false);
 
   let fetchCountries = _ => {
     let _ = {
-      open Promise;
-      open Js.Promise.Let_syntax;
+      open Promise.Let_syntax;
       let+ countries = CountriesApi.getAll();
       setCountries(_ => countries);
     };
     ();
   };
 
-  let filteredCountries =
-    countries
-    |> Js.Array.filter(~f=(country: CountriesApi.t) => {
-         Js.String.indexOf(
-           ~search=Js.String.toLowerCase(filter),
-           Js.String.toLowerCase(country.label),
-         )
-         == 0
-       });
-  <>
-    <button onClick=fetchCountries type_="button"> {React.string("Click me")} </button>
-    <button type_="button" onClick={_ => setOpenList(v => !v)}>
-      {React.string("Toggle")}
-    </button>
-    <div className={cn([|comboboxContainer, openList ? displayFlex : ""|])}>
-      <input
-        type_="string"
-        value=filter
-        onInput={e => setFilter(React.Event.Form.target(e)##value)}
-      />
-      <ul className={cn([|menu, paddingBlockSm|])}>
-        {filteredCountries
-         |> Js.Array.map(~f=(country: CountriesApi.t) => {
-              <li
-                key={country.value}
-                className={cn([|textMd, menuItem, colorPrimary|])}>
-                {React.string(country.label)}
-              </li>
-            })
-         |> React.array}
-      </ul>
-    </div>
-  </>;
+  React.useEffect0(() => {
+    fetchCountries();
+    None;
+  });
+
+  <main className="px-20">
+    <Combobox
+      options=countries
+      selectLabel={(country: CountriesApi.t) => country.label}
+      selectUniqueString={(country: CountriesApi.t) => country.value}
+      onSelect={country => Js.log(country)}
+      itemEqual={(a: CountriesApi.t, b: CountriesApi.t) => a.value == b.value}
+      renderItem={(country: CountriesApi.t) => {
+        let countryCode = country.value;
+        <>
+          <span className={j|fi fi-$(countryCode)|j} />
+          {React.string(country.label)}
+        </>;
+      }}
+      renderButton={_ => React.string("Click me")}
+    />
+  </main>;
 };

@@ -1,29 +1,36 @@
-[@deriving jsProperties]
-type scrollToIndexOptions = {
-  [@mel.optional]
-  align: option(string),
-  [@mel.optional]
-  behaviour: option(string),
-};
-
-type virtualItem = {
-  key: string,
-  index: int,
-  start: int,
-  size: int,
-  [@mel.as "end"]
-  end_: int,
-  lane: int,
-};
-
 module Virtualizer = {
-  type t = {
-    getTotalSize: unit => int,
-    scrollToIndex: (. int, option(scrollToIndexOptions)) => unit,
-    getVirtualItems: unit => array(virtualItem),
-    measureElement: Js.nullable(Dom.element) => unit,
+  [@deriving jsProperties]
+  type scrollToIndexOptions = {
+    [@mel.optional]
+    align: option(string),
+    [@mel.optional]
+    behaviour: option(string),
   };
 
+  module VirtualItem = {
+    [@deriving accessors]
+    type t = {
+      key: string,
+      index: int,
+      start: int,
+      size: int,
+      [@mel.as "end"]
+      end_: int,
+      lane: int,
+    };
+  };
+
+  type t = {measureElement: Js.nullable(Dom.element) => unit};
+
+  [@mel.send] external getTotalSize: t => int = "getTotalSize";
+  [@mel.send]
+  external getVirtualItems: t => array(VirtualItem.t) = "getVirtualItems";
+  [@mel.send.pipe: t] external scrollToIndex: int => unit = "scrollToIndex";
+  [@mel.send.pipe: t]
+  external scrollToIndexWithOptions: (int, scrollToIndexOptions) => unit =
+    "scrollToIndex";
+
+  [@deriving accessors]
   type range = {
     startIndex: int,
     endIndex: int,

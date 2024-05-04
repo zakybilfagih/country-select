@@ -1,7 +1,12 @@
 [%%mel.raw {|import "modern-normalize/modern-normalize.css"|}];
 
+let client = ReactQuery.Client.Provider.createClient();
+let component =
+  <React.StrictMode>
+    <ReactQuery.Client.Provider client> <App /> </ReactQuery.Client.Provider>
+  </React.StrictMode>;
+
 let element = ReactDOM.querySelector("#root");
-let component = <React.StrictMode> <App /> </React.StrictMode>;
 switch (element) {
 | Some(root) =>
   let root = ReactDOM.Client.createRoot(root);

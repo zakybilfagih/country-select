@@ -9,7 +9,10 @@ module Middleware = {
   type flipOptions = {
     [@mel.optional]
     padding: option(int),
-    fallbackStrategy: string,
+    [@mel.optional]
+    fallbackStrategy: option(string),
+    [@mel.optional]
+    crossAxis: option(bool),
   };
 
   [@mel.module "@floating-ui/react"] external flip: flipOptions => t = "flip";
@@ -152,14 +155,27 @@ external useListNavigation:
   (floatingContext, ~props: useListNavigationOptions=?, unit) => elementProps =
   "useListNavigation";
 
-type useInteractionsReturn = {
-  getReferenceProps: option(ReactDOM.domProps) => ReactDOM.domProps,
-  getFloatingProps: option(ReactDOM.domProps) => ReactDOM.domProps,
-  getItemProps: option(ReactDOM.domProps) => ReactDOM.domProps,
+module UseInteraction = {
+  type t;
+
+  [@mel.send]
+  external getReferenceProps:
+    (t, ~props: ReactDOM.domProps=?, unit) => ReactDOM.domProps =
+    "getReferenceProps";
+
+  [@mel.send]
+  external getFloatingProps:
+    (t, ~props: ReactDOM.domProps=?, unit) => ReactDOM.domProps =
+    "getFloatingProps";
+
+  [@mel.send]
+  external getItemProps:
+    (t, ~props: ReactDOM.domProps=?, unit) => ReactDOM.domProps =
+    "getItemProps";
+
+  [@mel.module "@floating-ui/react"]
+  external use: array(elementProps) => t = "useInteractions";
 };
-[@mel.module "@floating-ui/react"]
-external useInteractions: array(elementProps) => useInteractionsReturn =
-  "useInteractions";
 
 module FloatingPortal = {
   [@react.component] [@mel.module "@floating-ui/react"]

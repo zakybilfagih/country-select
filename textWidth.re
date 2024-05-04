@@ -1,6 +1,6 @@
 let canvas = ref(None);
 
-let get = (text, font) => {
+let get = (~text, ~font) => {
   let canvas =
     switch (canvas^) {
     | Some(canvas) => canvas

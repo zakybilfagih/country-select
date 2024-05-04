@@ -20,5 +20,4 @@
    (>= "0.56.0"))
   ppx_deriving_json
   melange-fetch
-  (ocaml-lsp-server :with-dev-setup)
-  (ocamlformat :with-dev-setup)))
+  (ocaml-lsp-server :with-dev-setup)))

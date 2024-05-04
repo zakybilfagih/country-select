@@ -1,81 +1,104 @@
-[%%mel.raw {|import "flag-icons/css/flag-icons.min.css"|}];
+let getSearchParam = param => {
+  let search =
+    Webapi.Dom.window
+    |> Webapi.Dom.Window.location
+    |> Webapi.Dom.Location.search;
+  let searchParams = Webapi.Url.URLSearchParams.make(search);
+  Webapi.Url.URLSearchParams.get(param, searchParams);
+};
+
 module Style = {
-  let itemContainer = [%cx {|
-    display: flex;
-    gap: 8px;
-  |}];
-
-  let flag = [%cx {|
-    width: 14px !important;
-  |}];
-
-  let buttonLabelContainer = [%cx
+  let sidebar = [%cx
     {|
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  |}
+        position: fixed;
+        top: 0;
+        width: 220px;
+        height: 100vh;
+        box-shadow: 0px 3px 18px 0px #00000026;
+        background-color: $(Colors.Light.backgroundBox);
+    |}
+  ];
+
+  let form = [%cx {|
+        margin: 10px;
+      |}];
+
+  let inputContainer = [%cx "margin-bottom: 10px"];
+
+  let main = [%cx
+    {|
+      padding-left: 256px;
+      padding-right: 36px;
+    |}
   ];
 };
 
 [@react.component]
 let make = () => {
-  let (countries, setCountries) = React.useState(_ => [||]);
-  let (country, setCountry) = React.useState(_ => None);
+  let (country, setCountry) = React.useState(() => None);
 
-  let fetchCountries = _ => {
-    let _ = {
-      open Promise.Let_syntax;
-      let+ countries = CountriesApi.getAll();
-      setCountries(_ => countries);
-    };
-    ();
+  let delay =
+    Option.value(
+      getSearchParam("delay")
+      |> Option.map(Js.Float.fromString)
+      |> Option.map(delay => Js.Float.isNaN(delay) ? 0 : int_of_float(delay)),
+      ~default=0,
+    );
+
+  let selectContainer = React.useRef(Js.Nullable.null);
+
+  let scrollToSelect = () => {
+    selectContainer.current
+    |> Js.Nullable.toOption
+    |> Option.iter(Webapi.Dom.Element.scrollIntoView);
   };
 
-  React.useEffect0(() => {
-    fetchCountries();
-    None;
-  });
+  React.useEffect1(
+    () => {
+      Js.Global.setTimeout(~f=scrollToSelect, 0) |> ignore;
+      None;
+    },
+    [|selectContainer|],
+  );
 
-  <main style={ReactDOM.Style.make(~padding="0 50px", ())}>
-    <div style={ReactDOM.Style.make(~height="800px", ())} />
-    <Combobox
-      options=countries
-      getItemLabel={(country: CountriesApi.t) => country.label}
-      selected=country
-      onSelect={country => setCountry(_ => country)}
-      itemEqual={(a: CountriesApi.t, b: CountriesApi.t) => a.value == b.value}
-      buttonAriaLabel="Choose country"
-      noResultText="No country found."
-      renderItem={(country: CountriesApi.t) => {
-        let countryCode = country.value;
-        <div className=Style.itemContainer>
-          <span
-            className={Cn.make([|{j|fi fi-$(countryCode)|j}, Style.flag|])}
+  <>
+    <aside className=Style.sidebar>
+      <form className=Style.form>
+        <div className=Style.inputContainer>
+          <label htmlFor="delay">
+            <p
+              className={Cn.make([|
+                [%cx "margin-bottom: 4px;"],
+                StyleHelper.textMd,
+              |])}>
+              {React.string("Fetch delay in milliseconds: ")}
+            </p>
+          </label>
+          <input
+            type_="number"
+            id="delay"
+            name="delay"
+            defaultValue={delay == 0 ? "" : string_of_int(delay)}
+            min="0"
+            max="10000"
+            className=[%cx "width: 100%;"]
           />
-          {React.string(country.label)}
-        </div>;
-      }}
-      renderButton={_ => {
-        let label =
-          Option.value(
-            ~default="Country",
-            Option.map((country: CountriesApi.t) => country.label, country),
-          );
-        let countryCode =
-          Option.map((country: CountriesApi.t) => country.value, country);
-        <div className=Style.buttonLabelContainer>
-          {switch (countryCode) {
-           | Some(countryCode) =>
-             <span
-               className={Cn.make([|{j|fi fi-$(countryCode)|j}, Style.flag|])}
-             />
-           | None => React.null
-           }}
-          {React.string(label)}
-        </div>;
-      }}
-    />
-    <div style={ReactDOM.Style.make(~height="1000px", ())} />
-  </main>;
+        </div>
+        <button type_="submit"> {React.string("Submit")} </button>
+      </form>
+    </aside>
+    <main className=Style.main>
+      <div className=[%cx "height: 100vh;"] />
+      <div
+        className=[%cx "display: flex; margin-left: 30%;"]
+        ref={ReactDOM.Ref.domRef(selectContainer)}>
+        <CountrySelect
+          country
+          onChange={country => setCountry(_ => country)}
+          delay
+        />
+      </div>
+      <div className=[%cx "height: 100vh;"] />
+    </main>
+  </>;
 };

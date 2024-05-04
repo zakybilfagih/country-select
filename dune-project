@@ -4,6 +4,8 @@
 
 (using melange 0.1)
 
+(using directory-targets 0.1)
+
 (package
  (allow_empty)
  (name country-select)

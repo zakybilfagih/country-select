@@ -2,9 +2,12 @@
   "name": "country-select",
   "version": "1.0.0",
   "description": "",
-  "main": "_build/default/output/index.js",
+  "homepage": "https://zakybilfagih.github.io/country-select/",
   "scripts": {
-    "dev": "vite _build/default/output"
+    "dev": "vite _build/default",
+    "build": "opam exec -- dune build @vite",
+    "predeploy": "npm run build",
+    "deploy": "gh-pages -d dist"
   },
   "keywords": [],
   "author": "",
@@ -22,6 +25,7 @@
   },
   "devDependencies": {
     "@rollup/plugin-node-resolve": "^15.2.3",
+    "gh-pages": "^6.1.1",
     "vite": "^5.2.10"
   }
 }

@@ -47,16 +47,16 @@ let make = () => {
 
   let selectContainer = React.useRef(Js.Nullable.null);
 
-  let scrollToSelect = () => {
-    selectContainer.current
-    |> Js.Nullable.toOption
-    |> Option.iter(Webapi.Dom.Element.scrollIntoView);
-  };
-
   React.useEffect1(
     () => {
-      Js.Global.setTimeout(~f=scrollToSelect, 0) |> ignore;
-      None;
+      let scrollToSelect = () => {
+        selectContainer.current
+        |> Js.Nullable.toOption
+        |> Option.iter(Webapi.Dom.Element.scrollIntoView);
+      };
+
+      let handle = Js.Global.setTimeout(~f=scrollToSelect, 100);
+      Some(() => {Js.Global.clearTimeout(handle)});
     },
     [|selectContainer|],
   );
@@ -90,7 +90,7 @@ let make = () => {
     <main className=Style.main>
       <div className=[%cx "height: 100vh;"] />
       <div
-        className=[%cx "display: flex; margin-left: 30%;"]
+        className=[%cx "display: flex; margin-left: 30%; padding-block: 100px;"]
         ref={ReactDOM.Ref.domRef(selectContainer)}>
         <CountrySelect
           country

@@ -3,5 +3,13 @@ import { nodeResolve } from "@rollup/plugin-node-resolve";
 
 export default defineConfig({
   plugins: [nodeResolve()],
-  base: "/country-select/",
+  build: {
+    rollupOptions: {
+      external: ["@emotion/server", "react-dom/server"],
+    },
+  },
+  ssgOptions: {
+    entry: "index.js",
+    crittersOptions: {},
+  },
 });

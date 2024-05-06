@@ -80,14 +80,16 @@ let make =
       ~inputClassName=?,
       ~inputContainerClassName=?,
       ~optionClassName=?,
-      ~delay=0,
+      ~delay=None,
     ) => {
   let countriesQuery =
     ReactQuery.Query.(
       useQueryWithSelect(
         queryOptions(
+          ~enabled=Option.is_some(delay),
           ~queryKey=ReactQuery.Utils.queryKey1("countries"),
-          ~queryFn=_ => delayPromise(delay, CountriesApi.getAll()),
+          ~queryFn=
+            _ => delayPromise(Option.get(delay), CountriesApi.getAll()),
           ~select=
             Js.Array.map(~f=(country: CountriesApi.t) =>
               Country.make(~name=country.label, ~code=country.value)

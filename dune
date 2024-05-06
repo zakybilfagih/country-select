@@ -12,18 +12,6 @@
   bindings
   melange-react-query)
  (module_systems es6)
+ (runtime_deps vite.config.js index.html)
  (preprocess
   (pps melange.ppx reason-react-ppx styled-ppx ppx_deriving_json.browser)))
-
-(rule
- (alias vite)
- (targets
-  (dir dist))
- (deps
-  (alias app)
-  vite.config.js
-  index.html)
- (action
-  (system "../../node_modules/.bin/vite build"))
- (mode
-  (promote (until-clean))))

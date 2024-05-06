@@ -38,11 +38,15 @@ let make = () => {
   let (country, setCountry) = React.useState(() => None);
 
   let delay =
-    Option.value(
-      getSearchParam("delay")
-      |> Option.map(Js.Float.fromString)
-      |> Option.map(delay => Js.Float.isNaN(delay) ? 0 : int_of_float(delay)),
-      ~default=0,
+    ReactHelper.useClientValue(
+      () =>
+        getSearchParam("delay")
+        |> Option.map(Js.Float.fromString)
+        |> Option.map(delay =>
+             Js.Float.isNaN(delay) ? 0 : int_of_float(delay)
+           )
+        |> Option.fold(~none=Some(0), ~some=Option.some(_)),
+      ~fallback=None,
     );
 
   let selectContainer = React.useRef(Js.Nullable.null);
@@ -78,7 +82,11 @@ let make = () => {
             type_="number"
             id="delay"
             name="delay"
-            defaultValue={delay == 0 ? "" : string_of_int(delay)}
+            defaultValue={Option.fold(
+              ~none="",
+              ~some=delay => {delay == 0 ? "" : string_of_int(delay)},
+              delay,
+            )}
             min="0"
             max="10000"
             className=[%cx "width: 100%;"]
@@ -90,7 +98,9 @@ let make = () => {
     <main className=Style.main>
       <div className=[%cx "height: 100vh;"] />
       <div
-        className=[%cx "display: flex; margin-left: 30%; padding-block: 100px;"]
+        className=[%cx
+          "display: flex; margin-left: 30%; padding-block: 100px;"
+        ]
         ref={ReactDOM.Ref.domRef(selectContainer)}>
         <CountrySelect
           country

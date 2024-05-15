@@ -1,11 +1,13 @@
 module Virtualizer = {
-  [@deriving jsProperties]
-  type scrollToIndexOptions = {
-    [@mel.optional]
-    align: option(string),
-    [@mel.optional]
-    behaviour: option(string),
-  };
+  type scrollOptions;
+  [@mel.obj]
+  external scrollOptions:
+    (
+      ~align: [ | `start | `center | [@mel.as "end"] `end_ | `auto]=?,
+      ~behaviour: [ | `auto | `scroll]=?,
+      unit
+    ) =>
+    scrollOptions;
 
   module VirtualItem = {
     [@deriving accessors]
@@ -27,7 +29,7 @@ module Virtualizer = {
   external getVirtualItems: t => array(VirtualItem.t) = "getVirtualItems";
   [@mel.send.pipe: t] external scrollToIndex: int => unit = "scrollToIndex";
   [@mel.send.pipe: t]
-  external scrollToIndexWithOptions: (int, scrollToIndexOptions) => unit =
+  external scrollToIndexWithOptions: (int, scrollOptions) => unit =
     "scrollToIndex";
 
   [@deriving accessors]
@@ -46,6 +48,14 @@ module Virtualizer = {
     overscan: option(int),
     [@mel.optional]
     getScrollElement: option(unit => Js.nullable(Dom.element)),
+    [@mel.optional]
+    paddingStart: option(int),
+    [@mel.optional]
+    paddingEnd: option(int),
+    [@mel.optional]
+    scrollPaddingStart: option(int),
+    [@mel.optional]
+    scrollPaddingEnd: option(int),
   };
 
   [@mel.module "@tanstack/react-virtual"]

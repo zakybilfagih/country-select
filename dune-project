@@ -22,4 +22,5 @@
    (>= "0.56.0"))
   ppx_deriving_json
   melange-fetch
+  melange-webapi
   (ocaml-lsp-server :with-dev-setup)))

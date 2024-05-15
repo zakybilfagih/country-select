@@ -5,17 +5,20 @@ module Middleware = {
 
   [@mel.module "@floating-ui/react"] external offset: int => t = "offset";
 
+  type fallbackStrategy = [ | `bestFit | `initialPlacement];
+
   [@deriving jsProperties]
   type flipOptions = {
     [@mel.optional]
     padding: option(int),
     [@mel.optional]
-    fallbackStrategy: option(string),
+    fallbackStrategy: option(fallbackStrategy),
     [@mel.optional]
     crossAxis: option(bool),
   };
 
-  [@mel.module "@floating-ui/react"] external flip: flipOptions => t = "flip";
+  [@mel.module "@floating-ui/react"]
+  external flip: (~options: flipOptions=?, unit) => t = "flip";
 
   type elements = {
     reference: React.element,
@@ -41,16 +44,15 @@ module Middleware = {
     rects,
   };
 
-  type sizeOptionsApply = sizeOptionsApplyParam => unit;
-
   [@deriving jsProperties]
   type sizeOptions = {
     [@mel.optional]
-    apply: option(sizeOptionsApply),
+    apply: option(sizeOptionsApplyParam => unit),
     [@mel.optional]
     padding: option(int),
   };
-  [@mel.module "@floating-ui/react"] external size: sizeOptions => t = "size";
+  [@mel.module "@floating-ui/react"]
+  external size: (~options: sizeOptions=?, unit) => t = "size";
 };
 
 type whileElementsMountedFn;
@@ -58,19 +60,32 @@ type whileElementsMountedFn;
 [@mel.module "@floating-ui/react"]
 external autoUpdate: whileElementsMountedFn = "autoUpdate";
 
-[@deriving jsProperties]
-type useFloatingOptions = {
-  [@mel.optional]
-  placement: option(string),
-  [@mel.optional]
-  whileElementsMounted: option(whileElementsMountedFn),
-  [@mel.optional] [@mel.as "open"]
-  open_: option(bool),
-  [@mel.optional]
-  middleware: option(array(Middleware.t)),
-  [@mel.optional]
-  onOpenChange: option(bool => unit),
-};
+type useFloatingOptions;
+[@mel.obj]
+external useFloatingOptions:
+  (
+    ~placement: [
+                  | `top
+                  | [@mel.as "top-start"] `topStart
+                  | [@mel.as "top-end"] `topEnd
+                  | `right
+                  | [@mel.as "right-start"] `rightStart
+                  | [@mel.as "right-start"] `rightEnd
+                  | `bottom
+                  | [@mel.as "bottom-start"] `bottomStart
+                  | [@mel.as "bottom-start"] `bottomEnd
+                  | `left
+                  | [@mel.as "left-start"] `leftStart
+                  | [@mel.as "left-start"] `leftEnd
+                ]
+                  =?,
+    ~whileElementsMounted: whileElementsMountedFn=?,
+    ~_open: bool=?,
+    ~middleware: array(Middleware.t)=?,
+    ~onOpenChange: bool => unit=?,
+    unit
+  ) =>
+  useFloatingOptions;
 
 type useFloatingRefs = {
   setReference: Js.nullable(Dom.element) => unit,
@@ -110,7 +125,7 @@ type useFocusOptions = {
 };
 [@mel.module "@floating-ui/react"]
 external useFocus:
-  (floatingContext, ~props: useFocusOptions=?, unit) => elementProps =
+  (floatingContext, ~options: useFocusOptions=?, unit) => elementProps =
   "useFocus";
 
 [@mel.module "@floating-ui/react"]

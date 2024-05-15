@@ -22,7 +22,7 @@ module Button = {
        | Some(country) =>
          <>
            <span
-             className={Cn.make([|
+             className={Utils.Cn.make([|
                Country.toFlagClassName(country),
                Style.flag,
              |])}
@@ -54,7 +54,10 @@ module Item = {
   let make = (~country) => {
     <>
       <span
-        className={Cn.make([|Country.toFlagClassName(country), Style.flag|])}
+        className={Utils.Cn.make([|
+          Country.toFlagClassName(country),
+          Style.flag,
+        |])}
       />
       {React.string(Country.name(country))}
     </>;
@@ -80,16 +83,18 @@ let make =
       ~inputClassName=?,
       ~inputContainerClassName=?,
       ~optionClassName=?,
-      ~delay=0,
+      ~delay=None,
     ) => {
   let countriesQuery =
     ReactQuery.Query.(
       useQueryWithSelect(
         queryOptions(
+          ~enabled=Option.is_some(delay),
           ~queryKey=ReactQuery.Utils.queryKey1("countries"),
-          ~queryFn=_ => delayPromise(delay, CountriesApi.getAll()),
+          ~queryFn=
+            _ => delayPromise(Option.get(delay), CountriesAPI.getAll()),
           ~select=
-            Js.Array.map(~f=(country: CountriesApi.t) =>
+            Js.Array.map(~f=(country: CountriesAPI.t) =>
               Country.make(~name=country.label, ~code=country.value)
             ),
           ~staleTime=ReactQuery.Utils.time(`infinity),
@@ -98,7 +103,7 @@ let make =
       )
     );
 
-  <Combobox
+  <Components.Combobox
     options={Option.value(countriesQuery.data, ~default=[||])}
     isLoading={countriesQuery.isLoading}
     selectedOption=country
@@ -109,7 +114,7 @@ let make =
     noResultText="No country found."
     renderButtonLabel={country => <Button country />}
     renderOption={country => <Item country />}
-    optionClassName={Cn.make([|
+    optionClassName={Utils.Cn.make([|
       Item.Style.container,
       Option.value(optionClassName, ~default=""),
     |])}

@@ -15,7 +15,7 @@ module Style = {
         width: 220px;
         height: 100vh;
         box-shadow: 0px 3px 18px 0px #00000026;
-        background-color: $(Colors.Light.backgroundBox);
+        background-color: $(Styling.Colors.Light.backgroundBox);
     |}
   ];
 
@@ -38,27 +38,28 @@ let make = () => {
   let (country, setCountry) = React.useState(() => None);
 
   let delay =
-    Option.value(
-      getSearchParam("delay")
-      |> Option.map(Js.Float.fromString)
-      |> Option.map(delay => Js.Float.isNaN(delay) ? 0 : int_of_float(delay)),
-      ~default=0,
+    Utils.ReactHelper.useClientValue(
+      () =>
+        getSearchParam("delay")
+        |> Option.map(Js.Float.fromString)
+        |> Option.map(delay =>
+             Js.Float.isNaN(delay) ? 0 : int_of_float(delay)
+           )
+        |> Option.fold(~none=Some(0), ~some=Option.some(_)),
+      ~fallback=None,
     );
 
   let selectContainer = React.useRef(Js.Nullable.null);
 
   React.useEffect1(
     () => {
-      let scrollToSelect = () => {
-        selectContainer.current
-        |> Js.Nullable.toOption
-        |> Option.iter(Webapi.Dom.Element.scrollIntoView);
-      };
+      selectContainer.current
+      |> Js.Nullable.toOption
+      |> Option.iter(Webapi.Dom.Element.scrollIntoView);
 
-      let handle = Js.Global.setTimeout(~f=scrollToSelect, 100);
-      Some(() => {Js.Global.clearTimeout(handle)});
+      None;
     },
-    [|selectContainer|],
+    [|selectContainer.current|],
   );
 
   <>
@@ -67,9 +68,9 @@ let make = () => {
         <div className=Style.inputContainer>
           <label htmlFor="delay">
             <p
-              className={Cn.make([|
+              className={Utils.Cn.make([|
                 [%cx "margin-bottom: 4px;"],
-                StyleHelper.textMd,
+                Styling.Typography.textMd,
               |])}>
               {React.string("Fetch delay in milliseconds: ")}
             </p>
@@ -78,7 +79,11 @@ let make = () => {
             type_="number"
             id="delay"
             name="delay"
-            defaultValue={delay == 0 ? "" : string_of_int(delay)}
+            defaultValue={Option.fold(
+              ~none="",
+              ~some=delay => {delay == 0 ? "" : string_of_int(delay)},
+              delay,
+            )}
             min="0"
             max="10000"
             className=[%cx "width: 100%;"]
@@ -90,7 +95,9 @@ let make = () => {
     <main className=Style.main>
       <div className=[%cx "height: 100vh;"] />
       <div
-        className=[%cx "display: flex; margin-left: 30%; padding-block: 100px;"]
+        className=[%cx
+          "display: flex; margin-left: 30%; padding-block: 100px;"
+        ]
         ref={ReactDOM.Ref.domRef(selectContainer)}>
         <CountrySelect
           country

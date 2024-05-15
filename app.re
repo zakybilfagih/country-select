@@ -53,16 +53,13 @@ let make = () => {
 
   React.useEffect1(
     () => {
-      let scrollToSelect = () => {
-        selectContainer.current
-        |> Js.Nullable.toOption
-        |> Option.iter(Webapi.Dom.Element.scrollIntoView);
-      };
+      selectContainer.current
+      |> Js.Nullable.toOption
+      |> Option.iter(Webapi.Dom.Element.scrollIntoView);
 
-      let handle = Js.Global.setTimeout(~f=scrollToSelect, 100);
-      Some(() => {Js.Global.clearTimeout(handle)});
+      None;
     },
-    [|selectContainer|],
+    [|selectContainer.current|],
   );
 
   <>

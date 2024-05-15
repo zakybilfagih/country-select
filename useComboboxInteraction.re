@@ -19,7 +19,7 @@ let use = (~listRef, ~selectedIndex, ~activeIndex, ~onNavigate=?, context) => {
             ~activeIndex=Js.Nullable.fromOption(activeIndex),
             ~virtual_=true,
             ~onNavigate?,
-            ~focusItemOnOpen=false,
+            ~focusItemOnOpen=true,
             ~disabledIndices=[||],
             ~loop=true,
             ~allowEscape=false,

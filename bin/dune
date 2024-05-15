@@ -1,0 +1,17 @@
+(melange.emit
+ (alias www)
+ (target output)
+ (libraries app)
+ (module_systems es6)
+ (runtime_deps vite.config.js index.html))
+
+(rule
+ (alias vite)
+ (targets
+  (dir dist))
+ (deps
+  (alias www)
+  vite.config.js
+  index.html)
+ (action
+  (system "../../../node_modules/.bin/vite-react-ssg build")))

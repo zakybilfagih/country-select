@@ -3,7 +3,7 @@ module Style = {
     {|
     margin: 0px;
     padding: 8px 10px;
-    color: $(Colors.Light.textPrimary)
+    color: $(Styling.Colors.Light.textPrimary)
   |}
   ];
 };
@@ -15,7 +15,7 @@ let make = (~children, ~id=?, ~role=?, ~ariaAtomic=?, ~ariaLive=?) => {
     ?role
     ?ariaAtomic
     ?ariaLive
-    className={Cn.make([|Style.noResult, StyleHelper.textMd|])}>
+    className={Utils.Cn.make([|Style.noResult, Styling.Typography.textMd|])}>
     children
   </p>;
 };

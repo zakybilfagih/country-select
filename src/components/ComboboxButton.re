@@ -5,15 +5,15 @@ module Style = {
     gap: 5px;
     align-items: center;
     padding: 4px 10px;
-    color: $(Colors.Light.textPrimary);
-    background-color: $(Colors.Light.backgroundBox);
-    border: 1px solid $(Colors.Light.borderControlAlpha);
+    color: $(Styling.Colors.Light.textPrimary);
+    background-color: $(Styling.Colors.Light.backgroundBox);
+    border: 1px solid $(Styling.Colors.Light.borderControlAlpha);
     border-radius: 3px;
   |}
   ];
 
   let chevron = [%cx {|
-    color: $(Colors.Light.textPrimary);
+    color: $(Styling.Colors.Light.textPrimary);
   |}];
 };
 [@react.component]
@@ -47,12 +47,12 @@ let make =
       ?onKeyDown
       type_="button"
       ref=?{ref |> Js.Nullable.toOption |> Option.map(ReactDOM.Ref.domRef)}
-      className={Cn.make([|
+      className={Utils.Cn.make([|
         Style.container,
-        StyleHelper.textMd,
+        Styling.Typography.textMd,
         Option.value(className, ~default=""),
       |])}>
       children
-      <Icon.Triangle className=Style.chevron />
+      <ComboboxIcon.Triangle className=Style.chevron />
     </button>
   });

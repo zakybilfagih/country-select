@@ -1,0 +1,14 @@
+(include_subdirs qualified)
+
+(library
+ (name app)
+ (modes melange)
+ (libraries
+  reason-react
+  styled-ppx.css
+  styled-ppx.emotion
+  melange-fetch
+  melange-webapi
+  melange-react-query)
+ (preprocess
+  (pps melange.ppx reason-react-ppx styled-ppx ppx_deriving_json.browser)))

@@ -1,4 +1,4 @@
-open Bindings.FloatingUi;
+open Bindings.FloatingUI;
 
 type t = {
   getInputProps: (~props: ReactDOM.domProps=?, unit) => ReactDOM.domProps,

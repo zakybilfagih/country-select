@@ -15,7 +15,7 @@ module Style = {
         width: 220px;
         height: 100vh;
         box-shadow: 0px 3px 18px 0px #00000026;
-        background-color: $(Colors.Light.backgroundBox);
+        background-color: $(Styling.Colors.Light.backgroundBox);
     |}
   ];
 
@@ -38,7 +38,7 @@ let make = () => {
   let (country, setCountry) = React.useState(() => None);
 
   let delay =
-    ReactHelper.useClientValue(
+    Utils.ReactHelper.useClientValue(
       () =>
         getSearchParam("delay")
         |> Option.map(Js.Float.fromString)
@@ -68,9 +68,9 @@ let make = () => {
         <div className=Style.inputContainer>
           <label htmlFor="delay">
             <p
-              className={Cn.make([|
+              className={Utils.Cn.make([|
                 [%cx "margin-bottom: 4px;"],
-                StyleHelper.textMd,
+                Styling.Typography.textMd,
               |])}>
               {React.string("Fetch delay in milliseconds: ")}
             </p>

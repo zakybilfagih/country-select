@@ -10,7 +10,7 @@ export default defineConfig({
     },
   },
   ssgOptions: {
-    entry: "index.js",
+    entry: "./output/bin/index.js",
     crittersOptions: {},
   },
 });

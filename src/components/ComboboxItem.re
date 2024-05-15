@@ -7,19 +7,19 @@ module Style = {
       width: 100%;
       cursor: default;
       padding: 4px 10px;
-      color: $(Colors.Light.textPrimary);
+      color: $(Styling.Colors.Light.textPrimary);
     |}
   ];
 
   let active = [%cx
     {|
-      background-color: $(Colors.Light.backgroundControlHover);
+      background-color: $(Styling.Colors.Light.backgroundControlHover);
     |}
   ];
 
   let selected = [%cx
     {|
-      background-color: $(Colors.Light.backgroundSelected);
+      background-color: $(Styling.Colors.Light.backgroundSelected);
     |}
   ];
 };
@@ -55,9 +55,9 @@ let make =
       ?ariaPosinset
       ariaSelected=selected
       ref=?{ref |> Js.Nullable.toOption |> Option.map(ReactDOM.Ref.domRef)}
-      className={Cn.make([|
+      className={Utils.Cn.make([|
         Style.item,
-        StyleHelper.textMd,
+        Styling.Typography.textMd,
         selected ? Style.selected : active ? Style.active : "",
         Option.value(className, ~default=""),
       |])}>

@@ -1,15 +1,13 @@
-open Bindings;
-
 [%%mel.raw {|import "modern-normalize/modern-normalize.css"|}];
 
 let client = ReactQuery.Client.Provider.createClient();
 
 let component =
   <React.StrictMode>
-    <ViteReactSSG.Head>
+    <Bindings.ViteReactSSG.Head>
       <title> {React.string("Country Select")} </title>
-    </ViteReactSSG.Head>
-    <ReactQuery.Client.Provider client> <App /> </ReactQuery.Client.Provider>
+    </Bindings.ViteReactSSG.Head>
+    <ReactQuery.Client.Provider client> <Index /> </ReactQuery.Client.Provider>
   </React.StrictMode>;
 
 let emotionStyleCollector = [%mel.raw
@@ -40,10 +38,10 @@ let emotionStyleCollector = [%mel.raw
 ];
 
 let createRoot =
-  ViteReactSSG.SinglePage.makeWithOptions(
+  Bindings.ViteReactSSG.SinglePage.makeWithOptions(
     component,
     ~options=
-      ViteReactSSG.SinglePage.makeOptions(
+      Bindings.ViteReactSSG.SinglePage.makeOptions(
         ~getStyleCollector=emotionStyleCollector,
         (),
       ),

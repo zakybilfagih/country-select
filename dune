@@ -1,17 +1,1 @@
 (dirs :standard \ node_modules)
-
-(melange.emit
- (alias app)
- (target output)
- (libraries
-  reason-react
-  styled-ppx.css
-  styled-ppx.emotion
-  melange-fetch
-  melange-webapi
-  bindings
-  melange-react-query)
- (module_systems es6)
- (runtime_deps vite.config.js index.html)
- (preprocess
-  (pps melange.ppx reason-react-ppx styled-ppx ppx_deriving_json.browser)))

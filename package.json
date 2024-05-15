@@ -4,10 +4,10 @@
   "description": "",
   "homepage": "https://zakybilfagih.github.io/country-select/",
   "scripts": {
-    "dev": "vite dev _build/default/output",
-    "build": "opam exec -- dune build && cd _build/default/output && vite-react-ssg build",
+    "dev": "vite dev _build/default/bin",
+    "build": "opam exec -- dune build @vite",
     "predeploy": "npm run build",
-    "deploy": "gh-pages -d _build/default/output/dist"
+    "deploy": "gh-pages -d _build/default/bin/dist"
   },
   "keywords": [],
   "author": "",

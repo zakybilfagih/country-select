@@ -1,4 +1,3 @@
-open ReactHelper;
 open Bindings;
 
 [@react.component]
@@ -35,13 +34,13 @@ let make =
     setPointer(_ => false);
   };
 
-  let {refs, context, floatingStyles, isPositioned}: FloatingUi.useFloatingReturn =
-    FloatingUi.(
+  let {refs, context, floatingStyles, isPositioned}: FloatingUI.useFloatingReturn =
+    FloatingUI.(
       useFloating(
         useFloatingOptions(
           ~_open,
           ~placement=`bottomStart,
-          ~whileElementsMounted=FloatingUi.autoUpdate,
+          ~whileElementsMounted=FloatingUI.autoUpdate,
           ~onOpenChange=
             value => {
               setOpen(_ => value);
@@ -88,11 +87,11 @@ let make =
       )
     );
 
-  let {getReferenceProps, getFloatingProps}: UseButtonInteraction.t =
-    UseButtonInteraction.use(context);
+  let {getReferenceProps, getFloatingProps}: Hooks.UseButtonInteraction.t =
+    Hooks.UseButtonInteraction.use(context);
 
   <>
-    <Spread props={getReferenceProps()}>
+    <Utils.ReactHelper.Spread props={getReferenceProps()}>
       <ComboboxButton
         id=buttonId
         ariaLabel=buttonAriaLabel
@@ -100,7 +99,7 @@ let make =
         ref={ReactDOM.Ref.callbackDomRef(refs.setReference)}>
         {renderButtonLabel(selectedOption)}
       </ComboboxButton>
-    </Spread>
+    </Utils.ReactHelper.Spread>
     {_open
        ? <ComboboxDialog
            refs

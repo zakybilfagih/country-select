@@ -5,8 +5,8 @@ module FloatingContainer = [%styled.section
     display: flex;
     flex-direction: column;
     box-shadow: 0px 3px 18px 0px #00000026;
-    background-color: $(Colors.Light.backgroundBox);
-    border: 1px solid $(Colors.Light.borderFloatingAlpha);
+    background-color: $(Styling.Colors.Light.backgroundBox);
+    border: 1px solid $(Styling.Colors.Light.borderFloatingAlpha);
     border-radius: 3px;
     overflow: hidden;
 |}
@@ -15,7 +15,7 @@ module ScrollContainer = [%styled.div
   {|
     padding-block: 0px;
     overflow-y: auto;
-    background-color: $(Colors.Light.backgroundBox);
+    background-color: $(Styling.Colors.Light.backgroundBox);
 |}
 ];
 module Item = ComboboxItem;
@@ -38,7 +38,7 @@ let getOptionsMaxWidth = (options, getOptionLabel, additionalContentWidth) => {
   options
   |> Js.Array.map(~f=getOptionLabel)
   |> Js.Array.map(~f=label =>
-       TextWidth.get(~text=label, ~font="normal 14px Arial")
+       Utils.TextWidth.get(~text=label, ~font="normal 14px Arial")
        + 42
        + additionalContentWidth
      )
@@ -52,7 +52,7 @@ let make =
       ~context,
       ~isPositioned,
       ~floatingStyles,
-      ~refs: FloatingUi.useFloatingRefs,
+      ~refs: FloatingUI.useFloatingRefs,
       ~getFloatingProps:
          (~props: ReactDOM.domProps=?, unit) => ReactDOM.domProps,
       ~activeIndex,
@@ -117,8 +117,8 @@ let make =
       (selectedOption, filteredOptions),
     );
 
-  let {getInputProps, getListFloatingProps, getItemProps}: UseComboboxInteraction.t =
-    UseComboboxInteraction.use(
+  let {getInputProps, getListFloatingProps, getItemProps}: Hooks.UseComboboxInteraction.t =
+    Hooks.UseComboboxInteraction.use(
       ~listRef,
       ~selectedIndex,
       ~activeIndex,
@@ -193,9 +193,9 @@ let make =
       [|filteredOptions|],
     );
 
-  <FloatingUi.FloatingPortal>
-    <FloatingUi.FloatingFocusManager context modal=false>
-      <ReactHelper.Spread
+  <FloatingUI.FloatingPortal>
+    <FloatingUI.FloatingFocusManager context modal=false>
+      <Utils.ReactHelper.Spread
         props={Js.Obj.assign(
           Obj.magic(getFloatingProps(~props=getListFloatingProps(), ())),
           {"aria-activedescendant": Js.undefined},
@@ -211,7 +211,7 @@ let make =
             ),
           )}>
           <InputContainer className=?inputContainerClassName isLoading>
-            <ReactHelper.Spread
+            <Utils.ReactHelper.Spread
               props={getInputProps(
                 ~props=
                   ReactDOM.domProps(
@@ -246,7 +246,7 @@ let make =
                 }
                 className=?inputClassName
               />
-            </ReactHelper.Spread>
+            </Utils.ReactHelper.Spread>
           </InputContainer>
           <ScrollContainer
             innerRef={ReactDOM.Ref.domRef(scrollRef)}
@@ -283,7 +283,7 @@ let make =
                     |> TanstackVirtual.Virtualizer.getVirtualItems
                     |> Js.Array.map(~f=item => {
                          TanstackVirtual.Virtualizer.(
-                           <ReactHelper.Spread
+                           <Utils.ReactHelper.Spread
                              key={VirtualItem.key(item)}
                              props={getItemProps(
                                ~props=
@@ -342,14 +342,14 @@ let make =
                                   filteredOptions[VirtualItem.index(item)],
                                 )}
                              </Item>
-                           </ReactHelper.Spread>
+                           </Utils.ReactHelper.Spread>
                          )
                        })
                     |> React.array}
                  </Listbox>}
           </ScrollContainer>
         </FloatingContainer>
-      </ReactHelper.Spread>
-    </FloatingUi.FloatingFocusManager>
-  </FloatingUi.FloatingPortal>;
+      </Utils.ReactHelper.Spread>
+    </FloatingUI.FloatingFocusManager>
+  </FloatingUI.FloatingPortal>;
 };

@@ -9,7 +9,7 @@ module Style = {
     color: black;
 
     &::placeholder {
-      color: $(Colors.Light.textTertiary);
+      color: $(Styling.Colors.Light.textTertiary);
     }
   |}
   ];
@@ -37,9 +37,9 @@ let make =
     ?onPointerDown
     ?value
     ?ariaControls
-    className={Cn.make([|
+    className={Utils.Cn.make([|
       Style.input,
-      StyleHelper.textMd,
+      Styling.Typography.textMd,
       Option.value(className, ~default=""),
     |])}
     type_="text"

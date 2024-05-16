@@ -2,9 +2,10 @@
 type t = {
   name: string,
   code: string,
+  info: int,
 };
 
-let make = (~name, ~code) => {name, code};
+let make = (~name, ~code, ~info) => {name, code, info};
 
 let equal = (t1, t2) => String.equal(t1.code, t2.code);
 

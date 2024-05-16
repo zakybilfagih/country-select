@@ -31,6 +31,7 @@ let make =
       ~children,
       ~active,
       ~selected,
+      ~index: int,
       ~id=?,
       ~className=?,
       ~onClick=?,
@@ -43,24 +44,26 @@ let make =
       ~ariaPosinset=?,
       ref,
     ) => {
-    <li
-      ?id
-      ?onClick
-      ?onFocus
-      ?onMouseMove
-      ?onPointerLeave
-      ?role
-      ?style
-      ?ariaSetsize
-      ?ariaPosinset
-      ariaSelected=selected
-      ref=?{ref |> Js.Nullable.toOption |> Option.map(ReactDOM.Ref.domRef)}
-      className={Utils.Cn.make([|
-        Style.item,
-        Styling.Typography.textMd,
-        selected ? Style.selected : active ? Style.active : "",
-        Option.value(className, ~default=""),
-      |])}>
-      children
-    </li>
+    <Utils.ReactHelper.Spread props={"data-index": index}>
+      <li
+        ?id
+        ?onClick
+        ?onFocus
+        ?onMouseMove
+        ?onPointerLeave
+        ?role
+        ?style
+        ?ariaSetsize
+        ?ariaPosinset
+        ariaSelected=selected
+        ref=?{ref |> Js.Nullable.toOption |> Option.map(ReactDOM.Ref.domRef)}
+        className={Utils.Cn.make([|
+          Style.item,
+          Styling.Typography.textMd,
+          selected ? Style.selected : active ? Style.active : "",
+          Option.value(className, ~default=""),
+        |])}>
+        children
+      </li>
+    </Utils.ReactHelper.Spread>
   });

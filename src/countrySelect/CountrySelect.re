@@ -1,3 +1,25 @@
+module Intl = {
+  module NumberFormat = {
+    type t;
+
+    type makeOptions;
+    [@mel.obj]
+    external makeOptions:
+      (
+        ~notation: [ | `standard | `scientific | `engineering | `compact]=?,
+        unit
+      ) =>
+      makeOptions;
+
+    [@mel.scope "Intl"]
+    external make: (~locales: string=?, ~options: makeOptions=?, unit) => t =
+      "NumberFormat";
+
+    [@mel.send.pipe: t] external format: float => string = "format";
+    [@mel.send.pipe: t] external formatInt: int => string = "format";
+  };
+};
+
 [%%mel.raw {|import "flag-icons/css/flag-icons.min.css"|}];
 
 module Button = {
@@ -48,8 +70,22 @@ module Item = {
     let flag = [%cx {|
       width: 14px !important;
     |}];
+
+    let info = [%cx
+      {|
+      flex-grow: 1;
+      text-align: right;
+      color: $(Styling.Colors.Light.textSecondary);
+    |}
+    ];
   };
 
+  let formatter =
+    Intl.NumberFormat.make(
+      ~locales="en",
+      ~options=Intl.NumberFormat.makeOptions(~notation=`compact, ()),
+      (),
+    );
   [@react.component]
   let make = (~country) => {
     <>
@@ -60,6 +96,12 @@ module Item = {
         |])}
       />
       {React.string(Country.name(country))}
+      <span
+        className={Utils.Cn.make([|Style.info, Styling.Typography.textXs|])}>
+        {React.string(
+           formatter |> Intl.NumberFormat.formatInt(Country.info(country)),
+         )}
+      </span>
     </>;
   };
 };
@@ -94,9 +136,20 @@ let make =
           ~queryFn=
             _ => delayPromise(Option.get(delay), CountriesAPI.getAll()),
           ~select=
-            Js.Array.map(~f=(country: CountriesAPI.t) =>
-              Country.make(~name=country.label, ~code=country.value)
-            ),
+            data => {
+              Random.init(1337);
+              Js.Array.map(
+                ~f=
+                  (country: CountriesAPI.t) => {
+                    Country.make(
+                      ~name=country.label,
+                      ~code=country.value,
+                      ~info=Random.int(300_000),
+                    )
+                  },
+                data,
+              );
+            },
           ~staleTime=ReactQuery.Utils.time(`infinity),
           (),
         ),
@@ -118,6 +171,7 @@ let make =
       Item.Style.container,
       Option.value(optionClassName, ~default=""),
     |])}
+    additionalContentWidth={40 + 8}
     ?buttonClassName
     ?inputClassName
     ?inputContainerClassName

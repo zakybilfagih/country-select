@@ -310,13 +310,16 @@ let make =
                                id={listboxId ++ VirtualItem.key(item)}
                                ariaSetsize={Js.Array.length(filteredOptions)}
                                ariaPosinset={VirtualItem.index(item) + 1}
+                               index={VirtualItem.index(item)}
                                className=?optionClassName
-                               ref={ReactDOM.Ref.callbackDomRef(
+                               ref={ReactDOM.Ref.callbackDomRef(node => {
+                                 rowVirtualizer.measureElement(node);
                                  Js.Array.unsafe_set(
                                    listRef.current,
                                    VirtualItem.index(item),
-                                 ),
-                               )}
+                                   node,
+                                 );
+                               })}
                                style={ReactDOM.Style.make(
                                  ~transform=
                                    "translateY("

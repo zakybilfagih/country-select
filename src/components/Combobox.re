@@ -3,20 +3,28 @@ open Bindings;
 [@react.component]
 let make =
     (
-      ~padding: int=25,
-      ~renderButtonLabel: option('option) => React.element,
-      ~maxHeight: int=400,
-      ~buttonAriaLabel: string="Choose item",
-      ~buttonClassName: option(string)=?,
-      ~selectedOption: option('option),
       ~options: array('option),
       ~getOptionLabel: 'option => string,
-      ~optionEqual: ('option, 'option) => bool,
-      ~additionalContentWidth: int=0,
-      ~noResultText: string="No item found.",
-      ~onSelect: option('option) => unit,
-      ~renderOption: 'option => React.element,
+      ~getOptionKey: 'option => 'key,
+      ~optionKeyEqual: ('key, 'key) => bool=(==),
+      ~selectedOption: option('key),
+      ~onSelect: option('key) => unit,
       ~isLoading: bool=false,
+      ~isError: bool=false,
+      ~renderButtonLabel:
+         (
+           ~selectedOption: option('option),
+           ~isLoading: bool,
+           ~isError: bool
+         ) =>
+         React.element,
+      ~renderOption: 'option => React.element,
+      ~padding: int=25,
+      ~maxHeight: int=400,
+      ~additionalContentWidth: int=0,
+      ~buttonAriaLabel: string="Choose item",
+      ~noResultText: string="No item found.",
+      ~buttonClassName: option(string)=?,
       ~inputClassName: option(string)=?,
       ~inputContainerClassName: option(string)=?,
       ~optionClassName: option(string)=?,
@@ -90,6 +98,20 @@ let make =
   let {getReferenceProps, getFloatingProps}: Hooks.UseButtonInteraction.t =
     Hooks.UseButtonInteraction.use(context);
 
+  let selectedOptionValue =
+    Js.Array.find(
+      ~f=
+        option =>
+          Option.fold(
+            ~none=false,
+            ~some=
+              selectedOption =>
+                optionKeyEqual(getOptionKey(option), selectedOption),
+            selectedOption,
+          ),
+      options,
+    );
+
   <>
     <Utils.ReactHelper.Spread props={getReferenceProps()}>
       <ComboboxButton
@@ -97,7 +119,11 @@ let make =
         ariaLabel=buttonAriaLabel
         className=?buttonClassName
         ref={ReactDOM.Ref.callbackDomRef(refs.setReference)}>
-        {renderButtonLabel(selectedOption)}
+        {renderButtonLabel(
+           ~selectedOption=selectedOptionValue,
+           ~isLoading,
+           ~isError,
+         )}
       </ComboboxButton>
     </Utils.ReactHelper.Spread>
     {_open
@@ -115,13 +141,14 @@ let make =
            computedMaxHeight
            buttonId
            options
-           optionEqual
+           optionKeyEqual
            additionalContentWidth
            noResultText
            onSelect
            isLoading
            renderOption
            getOptionLabel
+           getOptionKey
            selectedOption
            ?inputClassName
            ?inputContainerClassName

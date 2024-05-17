@@ -1,25 +1,3 @@
-module Intl = {
-  module NumberFormat = {
-    type t;
-
-    type makeOptions;
-    [@mel.obj]
-    external makeOptions:
-      (
-        ~notation: [ | `standard | `scientific | `engineering | `compact]=?,
-        unit
-      ) =>
-      makeOptions;
-
-    [@mel.scope "Intl"]
-    external make: (~locales: string=?, ~options: makeOptions=?, unit) => t =
-      "NumberFormat";
-
-    [@mel.send.pipe: t] external format: float => string = "format";
-    [@mel.send.pipe: t] external formatInt: int => string = "format";
-  };
-};
-
 [%%mel.raw {|import "flag-icons/css/flag-icons.min.css"|}];
 
 module Button = {
@@ -38,7 +16,7 @@ module Button = {
   };
 
   [@react.component]
-  let make = (~country) => {
+  let make = (~country, ~isLoading, ~isError) => {
     <div className=Style.container>
       {switch (country) {
        | Some(country) =>
@@ -51,7 +29,11 @@ module Button = {
            />
            {React.string(Country.name(country))}
          </>
-       | None => React.string("Country")
+       | None =>
+         switch (isLoading, isError) {
+         | (true, _) => React.string("Loading...")
+         | (_, _) => React.string("Country")
+         }
        }}
     </div>;
   };
@@ -81,9 +63,9 @@ module Item = {
   };
 
   let formatter =
-    Intl.NumberFormat.make(
+    Bindings.Intl.NumberFormat.make(
       ~locales="en",
-      ~options=Intl.NumberFormat.makeOptions(~notation=`compact, ()),
+      ~options=Bindings.Intl.NumberFormat.makeOptions(~notation=`compact, ()),
       (),
     );
   [@react.component]
@@ -99,7 +81,8 @@ module Item = {
       <span
         className={Utils.Cn.make([|Style.info, Styling.Typography.textXs|])}>
         {React.string(
-           formatter |> Intl.NumberFormat.formatInt(Country.info(country)),
+           formatter
+           |> Bindings.Intl.NumberFormat.formatInt(Country.info(country)),
          )}
       </span>
     </>;
@@ -158,20 +141,23 @@ let make =
 
   <Components.Combobox
     options={Option.value(countriesQuery.data, ~default=[||])}
-    isLoading={countriesQuery.isLoading}
+    getOptionLabel=Country.name
+    getOptionKey=Country.code
     selectedOption=country
     onSelect=onChange
-    getOptionLabel=Country.name
-    optionEqual=Country.equal
+    isLoading={countriesQuery.isLoading}
+    isError={countriesQuery.isError}
+    renderButtonLabel={(~selectedOption, ~isLoading, ~isError) =>
+      <Button country=selectedOption isLoading isError />
+    }
+    renderOption={country => <Item country />}
+    additionalContentWidth={40 + 8}
     buttonAriaLabel="Choose country"
     noResultText="No country found."
-    renderButtonLabel={country => <Button country />}
-    renderOption={country => <Item country />}
     optionClassName={Utils.Cn.make([|
       Item.Style.container,
       Option.value(optionClassName, ~default=""),
     |])}
-    additionalContentWidth={40 + 8}
     ?buttonClassName
     ?inputClassName
     ?inputContainerClassName

@@ -63,8 +63,9 @@ let make =
       ~setPointer,
       ~setOpen,
       ~getOptionLabel,
-      ~options,
-      ~optionEqual,
+      ~getOptionKey,
+      ~options: array('option),
+      ~optionKeyEqual: ('key, 'key) => bool,
       ~additionalContentWidth,
       ~noResultText,
       ~onSelect,
@@ -106,7 +107,7 @@ let make =
         Option.bind(selectedOption, selected =>
           switch (
             Js.Array.findIndex(
-              ~f=item => {optionEqual(selected, item)},
+              ~f=item => {optionKeyEqual(selected, getOptionKey(item))},
               filteredOptions,
             )
           ) {
@@ -228,7 +229,9 @@ let make =
                         if (React.Event.Keyboard.key(event) == "Enter"
                             && Option.is_some(activeIndex)) {
                           let activeIndex = Option.get(activeIndex);
-                          onSelect(Some(filteredOptions[activeIndex]));
+                          onSelect(
+                            Some(getOptionKey(filteredOptions[activeIndex])),
+                          );
                           setActiveIndex(_ => None);
                           setOpen(_ => false);
                           setInputValue(_ => "");
@@ -292,9 +295,11 @@ let make =
                                      _ => {
                                        onSelect(
                                          Some(
-                                           filteredOptions[VirtualItem.index(
-                                                             item,
-                                                           )],
+                                           getOptionKey(
+                                             filteredOptions[VirtualItem.index(
+                                                               item,
+                                                             )],
+                                           ),
                                          ),
                                        );
 
